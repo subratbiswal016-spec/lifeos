@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'onboarding_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/auth_provider.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends ConsumerState<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
 
@@ -23,11 +25,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     
     _controller.forward();
 
-    Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-      );
+    Future.delayed(const Duration(seconds: 3), () async {
+      // Check auth status
+      await ref.read(authProvider.notifier).checkAuthStatus();
+      if (mounted) {
+        final isAuthenticated = ref.read(authProvider).isAuthenticated;
+        if (isAuthenticated) {
+          context.go('/home');
+        } else {
+          context.go('/onboarding');
+        }
+      }
     });
   }
 
@@ -51,10 +59,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.favorite, 
-                size: 80, 
-                color: Colors.white,
+              const FlutterLogo(
+                size: 100,
+                style: FlutterLogoStyle.markOnly,
+                textColor: Colors.white,
               ),
               const SizedBox(height: 16),
               Text(

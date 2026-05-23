@@ -3,31 +3,43 @@ import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
-import '../../../navigation/main_navigation.dart';
-import 'login_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/auth_provider.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
   void _register() async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() => _isLoading = false);
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    final success = await ref.read(authProvider.notifier).register(name, email, password);
     
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainNavigation()),
+    if (success && mounted) {
+      context.go('/home');
+    } else if (mounted) {
+      final error = ref.read(authProvider).error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error ?? 'Registration failed')),
       );
     }
   }
@@ -36,11 +48,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
+    final authState = ref.watch(authProvider);
 
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
-          minHeight: size.height,
+          height: size.height,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topRight,
@@ -133,7 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: AppButton(
                       text: 'Register',
                       onPressed: _register,
-                      isLoading: _isLoading,
+                      isLoading: authState.isLoading,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -151,10 +164,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (_) => const LoginScreen()),
-                            );
+                            context.go('/login');
                           },
                           child: Text(
                             'Login',

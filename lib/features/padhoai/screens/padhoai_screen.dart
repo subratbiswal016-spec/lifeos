@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:go_router/go_router.dart';
 
 class PadhoAIScreen extends StatelessWidget {
   const PadhoAIScreen({super.key});
@@ -71,7 +72,7 @@ class PadhoAIScreen extends StatelessWidget {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                       onPressed: () {
-                        // Navigate to Timer screen
+                        context.push('/padhoai/timer');
                       },
                       icon: const Icon(Icons.play_arrow),
                       label: const Text('Start Study Session', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -87,7 +88,29 @@ class PadhoAIScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Your Subjects', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  TextButton.icon(onPressed: () {}, icon: const Icon(Iconsax.add), label: const Text('Add')),
+                  TextButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Add Subject'),
+                          content: const Text('Subject form will appear here.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Add'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    icon: const Icon(Iconsax.add),
+                    label: const Text('Add'),
+                  ),
                 ],
               ),
             ),
@@ -117,32 +140,38 @@ class PadhoAIScreen extends StatelessWidget {
 
   Widget _buildSubjectCard(BuildContext context, String title, String subtitle, IconData icon, Color color) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: color.withOpacity(0.2)),
-        boxShadow: [
-          BoxShadow(color: color.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
+    return InkWell(
+      onTap: () {
+        context.push('/padhoai/subject/$title');
+      },
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: color.withOpacity(0.2)),
+          boxShadow: [
+            BoxShadow(color: color.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: color, size: 32),
             ),
-            child: Icon(icon, color: color, size: 32),
-          ),
-          const Spacer(),
-          Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onBackground.withOpacity(0.6))),
-        ],
+            const Spacer(),
+            Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onBackground.withOpacity(0.6))),
+          ],
+        ),
       ),
     );
   }

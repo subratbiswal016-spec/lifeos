@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/member_card.dart';
+import '../providers/gharlog_provider.dart';
+import '../models/family_member_model.dart';
 
-class GharLogScreen extends StatelessWidget {
+class GharLogScreen extends ConsumerWidget {
   const GharLogScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final membersAsync = ref.watch(gharLogMembersProvider);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
@@ -23,9 +28,14 @@ class GharLogScreen extends StatelessWidget {
           )
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await ref.read(gharLogMembersProvider.notifier).fetchMembers();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             FadeInUp(
@@ -37,7 +47,50 @@ class GharLogScreen extends StatelessWidget {
                     style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   TextButton.icon(
-                    onPressed: () {},
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          final nameController = TextEditingController();
+                          final relationController = TextEditingController();
+                          return AlertDialog(
+                            title: const Text('Add Family Member'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextField(
+                                  controller: nameController,
+                                  decoration: const InputDecoration(labelText: 'Name', hintText: 'e.g. Papa'),
+                                ),
+                                const SizedBox(height: 8),
+                                TextField(
+                                  controller: relationController,
+                                  decoration: const InputDecoration(labelText: 'Relation', hintText: 'e.g. Father'),
+                                ),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  final name = nameController.text.trim();
+                                  final relation = relationController.text.trim();
+                                  if (name.isNotEmpty && relation.isNotEmpty) {
+                                    final newMember = FamilyMemberModel(id: '', name: name, relation: relation);
+                                    await ref.read(gharLogMembersProvider.notifier).addMember(newMember);
+                                    if (context.mounted) Navigator.pop(context);
+                                  }
+                                },
+                                child: const Text('Add'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
                     icon: const Icon(Iconsax.add),
                     label: const Text('Add Member'),
                   ),
@@ -45,23 +98,32 @@ class GharLogScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            FadeInUp(
-              delay: const Duration(milliseconds: 200),
-              child: MemberCard(
-                name: 'Papa',
-                relation: 'Father',
-                age: '55',
-                onTap: () {},
-              ),
-            ),
-            FadeInUp(
-              delay: const Duration(milliseconds: 300),
-              child: MemberCard(
-                name: 'Maa',
-                relation: 'Mother',
-                age: '50',
-                onTap: () {},
-              ),
+            membersAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+              data: (members) {
+                if (members.isEmpty) {
+                  return const Center(child: Text('No family members yet. Add one!'));
+                }
+                return Column(
+                  children: members.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final member = entry.value;
+                    return FadeInUp(
+                      delay: Duration(milliseconds: 200 + (index * 100)),
+                      child: MemberCard(
+                        name: member.name,
+                        relation: member.relation,
+                        age: member.age?.toString() ?? 'N/A',
+                        onTap: () {
+                          // Pass ID instead of name eventually, but keeping route simple for now
+                          context.push('/member_profile/${member.id}');
+                        },
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
             const SizedBox(height: 32),
             FadeInUp(
@@ -93,44 +155,57 @@ class GharLogScreen extends StatelessWidget {
           ],
         ),
       ),
+      ),
     );
   }
 
   Widget _buildActionCard(BuildContext context, String title, IconData icon, Color color) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              shape: BoxShape.circle,
+    return InkWell(
+      onTap: () {
+        if (title == 'Medicines') {
+          context.push('/add_medicine');
+        } else if (title == 'Doctor Visits') {
+          context.push('/gharlog/doctor_visits');
+        } else if (title == 'Symptoms') {
+          context.push('/gharlog/symptoms');
+        }
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 28),
             ),
-            child: Icon(icon, color: color, size: 28),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

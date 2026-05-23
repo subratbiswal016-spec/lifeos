@@ -17,20 +17,36 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    HomeScreen(),
-    MyLifeScreen(),
-    GharLogScreen(),
-    PadhoAIScreen(),
-  ];
+  List<Widget> _getScreens() {
+    return [
+      HomeScreen(
+        onNavigateTab: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+      ),
+      const MyLifeScreen(),
+      const GharLogScreen(),
+      const PadhoAIScreen(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      body: _screens[_currentIndex],
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          setState(() => _currentIndex = 0);
+        }
+      },
+      child: Scaffold(
+        body: _getScreens()[_currentIndex],
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(builder: (_) => const AICoachScreen()));
         },
@@ -52,6 +68,7 @@ class _MainNavigationState extends State<MainNavigation> {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -63,17 +80,18 @@ class _MainNavigationState extends State<MainNavigation> {
     return InkWell(
       onTap: () => setState(() => _currentIndex = index),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 0.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color),
-            const SizedBox(height: 4),
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
                 color: color,
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),

@@ -3,31 +3,41 @@ import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
-import '../../../navigation/main_navigation.dart';
-import 'register_screen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/auth_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
   void _login() async {
-    setState(() => _isLoading = true);
-    // Mock login delay
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() => _isLoading = false);
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    final success = await ref.read(authProvider.notifier).login(email, password);
     
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MainNavigation()),
+    if (success && mounted) {
+      context.go('/home');
+    } else if (mounted) {
+      final error = ref.read(authProvider).error;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error ?? 'Login failed')),
       );
     }
   }
@@ -36,6 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
+    final authState = ref.watch(authProvider);
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -140,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: AppButton(
                       text: 'Login',
                       onPressed: _login,
-                      isLoading: _isLoading,
+                      isLoading: authState.isLoading,
                     ),
                   ),
                   const Spacer(),
@@ -158,10 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         TextButton(
                           onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                            );
+                            context.go('/register');
                           },
                           child: Text(
                             'Register',
