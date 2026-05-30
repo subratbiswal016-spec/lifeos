@@ -6,6 +6,7 @@ class MemberCard extends StatelessWidget {
   final String relation;
   final String age;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   const MemberCard({
     super.key,
@@ -13,6 +14,7 @@ class MemberCard extends StatelessWidget {
     required this.relation,
     required this.age,
     required this.onTap,
+    this.onLongPress,
   });
 
   @override
@@ -22,6 +24,7 @@ class MemberCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(20),

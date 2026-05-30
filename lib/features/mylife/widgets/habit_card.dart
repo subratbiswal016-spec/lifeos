@@ -14,9 +14,11 @@ class HabitCard extends StatelessWidget {
     required this.progress,
     required this.isCompleted,
     this.onTap,
+    this.onLongPress,
   });
 
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +27,7 @@ class HabitCard extends StatelessWidget {
 
     return InkWell(
       onTap: onTap ?? () {},
+      onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),

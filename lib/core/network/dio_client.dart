@@ -73,13 +73,19 @@ class DioClient {
 
         if (e.response?.statusCode == 401) {
           // Auto refresh JWT logic would go here
-          // For now, clear token
           await _storage.delete(key: 'jwt_token');
-        } else if (e.response?.statusCode == 403) {
-          Fluttertoast.showToast(msg: "Premium Feature. Please upgrade.");
-          // Could trigger navigation to /premium here using a global navigator key
-        } else if (e.response?.statusCode == 500) {
-          Fluttertoast.showToast(msg: "Server Error. Please try again later.");
+          Fluttertoast.showToast(msg: "Session expired. Please log in again.");
+        } else {
+          // Extract backend error message if available
+          String errorMsg = "Something went wrong";
+          if (e.response?.data != null && e.response?.data is Map) {
+            errorMsg = e.response?.data['message'] ?? errorMsg;
+          } else if (e.response?.statusCode == 403) {
+            errorMsg = "Premium Feature. Please upgrade.";
+          } else if (e.response?.statusCode == 500) {
+            errorMsg = "Server Error. Please try again later.";
+          }
+          Fluttertoast.showToast(msg: errorMsg);
         }
         return handler.next(e);
       },

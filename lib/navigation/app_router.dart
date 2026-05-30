@@ -74,7 +74,9 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/add_medicine',
-      builder: (context, state) => const AddMedicineScreen(),
+      builder: (context, state) => AddMedicineScreen(
+        memberId: state.uri.queryParameters['memberId'],
+      ),
     ),
     GoRoute(
       path: '/padhoai/timer',
@@ -104,7 +106,9 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/gharlog/symptoms',
-      builder: (context, state) => const SymptomsLoggerScreen(),
+      builder: (context, state) => SymptomsLoggerScreen(
+        memberId: state.uri.queryParameters['memberId'],
+      ),
     ),
     GoRoute(
       path: '/add_habit',

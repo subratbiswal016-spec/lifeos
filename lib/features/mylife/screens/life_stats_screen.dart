@@ -63,6 +63,11 @@ class _LifeStatsScreenState extends ConsumerState<LifeStatsScreen> {
               focusedDay: _focusedDay,
               calendarFormat: _calendarFormat,
               selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              eventLoader: (day) {
+                if (state.history.isEmpty) return [];
+                final dateStr = DateFormat('yyyy-MM-dd').format(day);
+                return state.history.where((log) => log['date'] == dateStr).toList();
+              },
               onDaySelected: (selectedDay, focusedDay) {
                 setState(() {
                   if (isSameDay(_selectedDay, selectedDay)) {
@@ -88,6 +93,10 @@ class _LifeStatsScreenState extends ConsumerState<LifeStatsScreen> {
                 ),
                 selectedDecoration: BoxDecoration(
                   color: theme.colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+                markerDecoration: BoxDecoration(
+                  color: theme.colorScheme.tertiary,
                   shape: BoxShape.circle,
                 ),
               ),

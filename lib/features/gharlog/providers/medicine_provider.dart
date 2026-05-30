@@ -1,27 +1,65 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/medicine_model.dart';
+import '../repositories/medicine_repository.dart';
 
-class MedicineState {
-  final List<dynamic> dueMedicines;
-  
-  MedicineState({this.dueMedicines = const []});
-}
-
-class MedicineProviderNotifier extends StateNotifier<MedicineState> {
-  MedicineProviderNotifier() : super(MedicineState());
-
-  void loadDueMedicines() {
-    // Usually aggregates all medicines from the family tree locally
-    // Or fetches a specific /api/medicines/due endpoint
-    state = MedicineState(dueMedicines: [
-      {'name': 'Dolo 650', 'for': 'Papa', 'time': '14:00', 'status': 'pending'}
-    ]);
-  }
-
-  void markAsTaken(String medicineId) {
-    // Update local state and sync to backend
-  }
-}
-
-final medicineProvider = StateNotifierProvider<MedicineProviderNotifier, MedicineState>((ref) {
-  return MedicineProviderNotifier();
+final medicineProvider = StateNotifierProvider.family<MedicineNotifier, AsyncValue<List<MedicineModel>>, String>((ref, memberId) {
+  final repository = ref.watch(medicineRepositoryProvider);
+  return MedicineNotifier(repository, memberId);
 });
+
+class MedicineNotifier extends StateNotifier<AsyncValue<List<MedicineModel>>> {
+  final MedicineRepository _repository;
+  final String _memberId;
+
+  MedicineNotifier(this._repository, this._memberId) : super(const AsyncValue.loading()) {
+    fetchMedicines();
+  }
+
+  Future<void> fetchMedicines() async {
+    state = const AsyncValue.loading();
+    try {
+      final medicines = await _repository.fetchMedicines(_memberId);
+      state = AsyncValue.data(medicines);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> addMedicine(MedicineModel medicine) async {
+    try {
+      final newMedicine = await _repository.addMedicine(medicine);
+      if (state.hasValue) {
+        state = AsyncValue.data([...state.value!, newMedicine]);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> toggleMedicineLog(String medicineId) async {
+    try {
+      final updatedMedicine = await _repository.toggleMedicineLog(medicineId);
+      if (state.hasValue) {
+        state = AsyncValue.data([
+          for (final med in state.value!)
+            if (med.id == medicineId) updatedMedicine else med
+        ]);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteMedicine(String medicineId) async {
+    try {
+      await _repository.deleteMedicine(medicineId);
+      if (state.hasValue) {
+        state = AsyncValue.data(
+          state.value!.where((m) => m.id != medicineId).toList(),
+        );
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+}

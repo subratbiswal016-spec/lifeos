@@ -58,4 +58,12 @@ class GharLogRepository {
       rethrow;
     }
   }
+
+  Future<void> deleteMember(String memberId) async {
+    try {
+      await _dioClient.dio.delete('${ApiEndpoints.members}/$memberId');
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

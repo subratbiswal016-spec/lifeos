@@ -101,11 +101,20 @@ class MyLifeScreen extends ConsumerWidget {
                       'Today\'s Habits',
                       style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        context.push('/manage_habits');
-                      },
-                      child: const Text('Manage'),
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: () => context.push('/add_habit'),
+                          icon: const Icon(Icons.add_circle_outline),
+                          color: theme.colorScheme.primary,
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            context.push('/manage_habits');
+                          },
+                          child: const Text('Manage'),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -125,7 +134,28 @@ class MyLifeScreen extends ConsumerWidget {
                     return Center(
                       child: Padding(
                         padding: const EdgeInsets.all(24.0),
-                        child: Text('No habits found. Click Manage to add one!', style: TextStyle(color: theme.colorScheme.onBackground.withOpacity(0.6))),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Iconsax.note_add, size: 64, color: theme.colorScheme.onBackground.withOpacity(0.2)),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No habits found.',
+                              style: TextStyle(color: theme.colorScheme.onBackground.withOpacity(0.6), fontSize: 16),
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton.icon(
+                              onPressed: () => context.push('/add_habit'),
+                              icon: const Icon(Icons.add, color: Colors.white),
+                              label: const Text('Create your first Habit', style: TextStyle(color: Colors.white)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.colorScheme.primary,
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   }
@@ -144,6 +174,38 @@ class MyLifeScreen extends ConsumerWidget {
                             if (!habit.isCompletedToday) {
                               ref.read(habitsProvider.notifier).toggleHabitCompletion(habit.id);
                             }
+                          },
+                          onLongPress: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Delete Habit'),
+                                content: Text('Are you sure you want to delete "${habit.name}"?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                    onPressed: () async {
+                                      Navigator.pop(context);
+                                      try {
+                                        await ref.read(habitsProvider.notifier).deleteHabit(habit.id);
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Habit deleted')));
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                                        }
+                                      }
+                                    },
+                                    child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                                  ),
+                                ],
+                              ),
+                            );
                           },
                         ),
                       );

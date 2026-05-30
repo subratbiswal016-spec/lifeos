@@ -3,6 +3,8 @@ import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
+import '../../../core/widgets/premium_background.dart';
+import '../../../core/widgets/glass_container.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
@@ -51,134 +53,143 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final authState = ref.watch(authProvider);
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
-          height: size.height,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-              colors: [
-                theme.colorScheme.secondary.withOpacity(0.05),
-                theme.colorScheme.background,
-              ],
-            ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 40),
-                  FadeInDown(
-                    duration: const Duration(milliseconds: 800),
-                    child: Icon(
-                      Iconsax.profile_add,
-                      size: 64,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  FadeInDown(
-                    delay: const Duration(milliseconds: 200),
-                    duration: const Duration(milliseconds: 800),
-                    child: Text(
-                      'Create Account',
-                      style: theme.textTheme.headlineLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: theme.colorScheme.onBackground,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  FadeInDown(
-                    delay: const Duration(milliseconds: 400),
-                    duration: const Duration(milliseconds: 800),
-                    child: Text(
-                      'Start organizing your life with LifeOS.',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onBackground.withOpacity(0.6),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  FadeInUp(
-                    delay: const Duration(milliseconds: 600),
-                    duration: const Duration(milliseconds: 800),
-                    child: AppTextField(
-                      label: 'Full Name',
-                      hint: 'Enter your name',
-                      controller: _nameController,
-                      prefixIcon: Iconsax.user,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  FadeInUp(
-                    delay: const Duration(milliseconds: 800),
-                    duration: const Duration(milliseconds: 800),
-                    child: AppTextField(
-                      label: 'Email Address',
-                      hint: 'Enter your email',
-                      controller: _emailController,
-                      prefixIcon: Iconsax.sms,
-                      keyboardType: TextInputType.emailAddress,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  FadeInUp(
-                    delay: const Duration(milliseconds: 1000),
-                    duration: const Duration(milliseconds: 800),
-                    child: AppTextField(
-                      label: 'Password',
-                      hint: 'Create a password',
-                      controller: _passwordController,
-                      prefixIcon: Iconsax.lock,
-                      isPassword: true,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  FadeInUp(
-                    delay: const Duration(milliseconds: 1200),
-                    duration: const Duration(milliseconds: 800),
-                    child: AppButton(
-                      text: 'Register',
-                      onPressed: _register,
-                      isLoading: authState.isLoading,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  FadeInUp(
-                    delay: const Duration(milliseconds: 1400),
-                    duration: const Duration(milliseconds: 800),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Already have an account?',
-                          style: TextStyle(
-                            color: theme.colorScheme.onBackground.withOpacity(0.6),
-                          ),
+      backgroundColor: Colors.transparent,
+      body: PremiumBackground(
+        showOrbs: true,
+        child: SingleChildScrollView(
+          child: Container(
+            constraints: BoxConstraints(minHeight: size.height),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 40),
+                    FadeInDown(
+                      duration: const Duration(milliseconds: 800),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: theme.colorScheme.secondary.withOpacity(0.1),
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.colorScheme.secondary.withOpacity(0.2),
+                              blurRadius: 30,
+                              spreadRadius: 5,
+                            ),
+                          ],
                         ),
-                        TextButton(
-                          onPressed: () {
-                            context.go('/login');
-                          },
-                          child: Text(
-                            'Login',
+                        child: Icon(
+                          Iconsax.profile_add,
+                          size: 64,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    FadeInDown(
+                      delay: const Duration(milliseconds: 200),
+                      duration: const Duration(milliseconds: 800),
+                      child: Text(
+                        'Create Account',
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 1.0,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    FadeInDown(
+                      delay: const Duration(milliseconds: 400),
+                      duration: const Duration(milliseconds: 800),
+                      child: Text(
+                        'Start organizing your life with LifeOS.',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: Colors.white70,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 600),
+                      duration: const Duration(milliseconds: 800),
+                      child: GlassContainer(
+                        padding: const EdgeInsets.all(28),
+                        child: Column(
+                          children: [
+                            AppTextField(
+                              label: 'Full Name',
+                              hint: 'Enter your name',
+                              controller: _nameController,
+                              prefixIcon: Iconsax.user,
+                            ),
+                            const SizedBox(height: 20),
+                            AppTextField(
+                              label: 'Email Address',
+                              hint: 'Enter your email',
+                              controller: _emailController,
+                              prefixIcon: Iconsax.sms,
+                              keyboardType: TextInputType.emailAddress,
+                            ),
+                            const SizedBox(height: 20),
+                            AppTextField(
+                              label: 'Password',
+                              hint: 'Create a password',
+                              controller: _passwordController,
+                              prefixIcon: Iconsax.lock,
+                              isPassword: true,
+                            ),
+                            const SizedBox(height: 32),
+                            SizedBox(
+                              width: double.infinity,
+                              child: AppButton(
+                                text: 'Register',
+                                onPressed: _register,
+                                isLoading: authState.isLoading,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 1400),
+                      duration: const Duration(milliseconds: 800),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Already have an account?',
                             style: TextStyle(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.bold,
+                              color: Colors.white70,
                             ),
                           ),
-                        ),
-                      ],
+                          TextButton(
+                            onPressed: () {
+                              context.go('/login');
+                            },
+                            child: Text(
+                              'Login',
+                              style: TextStyle(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                    const SizedBox(height: 24),
+                  ],
+                ),
+                ),
               ),
             ),
           ),

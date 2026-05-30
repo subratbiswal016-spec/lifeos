@@ -1,31 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import '../../../core/widgets/glass_container.dart';
 
 class DailyTipCard extends StatelessWidget {
   final ThemeData theme;
+  final String tip;
 
-  const DailyTipCard({super.key, required this.theme});
+  const DailyTipCard({
+    super.key, 
+    required this.theme,
+    required this.tip,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
+    return GlassContainer(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF6C63FF), Color(0xFF5A52D5)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6C63FF).withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          )
-        ],
-      ),
+      color: const Color(0xFF6C63FF).withOpacity(0.15),
+      border: Border.all(color: const Color(0xFF6C63FF).withOpacity(0.4), width: 1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -34,16 +30,16 @@ class DailyTipCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: const Color(0xFF6C63FF).withOpacity(0.3),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Iconsax.magic_star, color: Colors.white, size: 20),
+                child: const Icon(Iconsax.magic_star, color: Color(0xFF8C85FF), size: 20),
               ),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'AI Daily Tip',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: textColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -51,10 +47,10 @@ class DailyTipCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const Text(
-            '"Focus on drinking 3L of water today, it will help you stay energized during your UPSC prep!"',
+          Text(
+            '"$tip"',
             style: TextStyle(
-              color: Colors.white,
+              color: isDark ? Colors.white.withOpacity(0.9) : Colors.black87.withOpacity(0.9),
               fontSize: 15,
               height: 1.5,
               fontStyle: FontStyle.italic,

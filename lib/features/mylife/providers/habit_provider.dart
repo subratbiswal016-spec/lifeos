@@ -62,4 +62,17 @@ class HabitsNotifier extends StateNotifier<AsyncValue<List<HabitModel>>> {
       }
     }
   }
+
+  Future<void> deleteHabit(String id) async {
+    try {
+      await _repository.deleteHabit(id);
+      if (state.hasValue) {
+        state = AsyncValue.data(
+          state.value!.where((h) => h.id != id).toList(),
+        );
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

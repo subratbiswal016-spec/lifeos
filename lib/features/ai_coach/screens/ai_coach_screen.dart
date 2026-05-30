@@ -1,66 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/ai_provider.dart';
 
-class AICoachScreen extends StatefulWidget {
+class AICoachScreen extends ConsumerStatefulWidget {
   const AICoachScreen({super.key});
 
   @override
-  State<AICoachScreen> createState() => _AICoachScreenState();
+  ConsumerState<AICoachScreen> createState() => _AICoachScreenState();
 }
 
-class _AICoachScreenState extends State<AICoachScreen> {
+class _AICoachScreenState extends ConsumerState<AICoachScreen> {
   final TextEditingController _messageController = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [
-    {
-      "isAi": true,
-      "text": "Namaste! I am your LifeOS AI Coach. Kaise help kar sakta hoon aaj?",
-      "time": "10:00 AM"
-    }
-  ];
+  final ScrollController _scrollController = ScrollController();
 
   final List<String> _suggestions = [
-    "Aaj kya karna chahiye?",
+    "How is my health today?",
     "Papa ki health kaisi hai?",
-    "Kaun sa subject weak hai?",
-    "Meri study pattern batao",
+    "Which subject is weak?",
+    "Show my study pattern",
   ];
 
-  bool _isTyping = false;
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToBottom() {
+    // Use a small delay to let the ListView rebuild with the new item first
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
 
   void _sendMessage(String text) {
     if (text.trim().isEmpty) return;
-    
-    setState(() {
-      _messages.add({
-        "isAi": false,
-        "text": text,
-        "time": "Now"
-      });
-      _messageController.clear();
-      _isTyping = true;
-    });
-
-    // Mock AI response with thinking delay
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isTyping = false;
-          _messages.add({
-            "isAi": true,
-            "text": "Yes, I can help you with that! Just connecting to Claude API...",
-            "time": "Now",
-            "animate": true // Flag for typewriter
-          });
-        });
-      }
-    });
+    _messageController.clear();
+    ref.read(aiProvider.notifier).sendMessage(text);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final aiColor = const Color(0xFF6C63FF);
+    final aiState = ref.watch(aiProvider);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
@@ -84,26 +76,34 @@ class _AICoachScreenState extends State<AICoachScreen> {
       ),
       body: Column(
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            color: const Color(0xFFFFC107).withOpacity(0.2), // Warning color
-            child: const Text(
-              '3 messages remaining this week',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFFF57F17), fontWeight: FontWeight.bold, fontSize: 12),
+          if (aiState.error != null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              color: Colors.red.withOpacity(0.2), // Error color
+              child: Text(
+                aiState.error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 12),
+              ),
             ),
-          ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length + (_isTyping ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == _messages.length && _isTyping) {
-                  return _buildThinkingBubble(theme, aiColor);
-                }
-                final msg = _messages[index];
-                return _buildMessageBubble(msg, theme, aiColor);
+            child: Builder(
+              builder: (context) {
+                // Auto-scroll whenever messages change or typing state changes
+                _scrollToBottom();
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: aiState.messages.length + (aiState.isTyping ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == aiState.messages.length && aiState.isTyping) {
+                      return _buildThinkingBubble(theme, aiColor);
+                    }
+                    final msg = aiState.messages[index];
+                    return _buildMessageBubble(msg, theme, aiColor);
+                  },
+                );
               },
             ),
           ),
@@ -192,6 +192,10 @@ class _AICoachScreenState extends State<AICoachScreen> {
                         height: 1.4,
                       ),
                     );
+                  },
+                  onEnd: () {
+                    // Turn off animation in the state map so it doesn't replay on scroll
+                    msg['animate'] = false; 
                   },
                 )
               : Text(

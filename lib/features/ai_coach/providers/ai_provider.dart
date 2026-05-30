@@ -35,12 +35,19 @@ class AiProviderNotifier extends StateNotifier<AiState> {
   Future<void> sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
+    // Turn off animation for all previous messages
+    final newMessages = state.messages.map((m) {
+      final copy = Map<String, dynamic>.from(m);
+      copy['animate'] = false;
+      return copy;
+    }).toList();
+    
     // Add user message locally
-    final newMessages = List<Map<String, dynamic>>.from(state.messages);
     newMessages.add({
       "isAi": false,
       "text": text,
-      "time": "Now"
+      "time": "Now",
+      "animate": false // Ensure user messages never animate
     });
 
     state = state.copyWith(messages: newMessages, isTyping: true, error: null);
@@ -50,12 +57,12 @@ class AiProviderNotifier extends StateNotifier<AiState> {
     
     if (response.success && response.data != null) {
       final updatedMessages = List<Map<String, dynamic>>.from(state.messages);
-      // updatedMessages.add({
-      //   "isAi": true,
-      //   "text": response.data!['reply'],
-      //   "time": "Now",
-      //   "animate": true
-      // });
+      updatedMessages.add({
+        "isAi": true,
+        "text": response.data!['reply'] ?? "I didn't understand that.", 
+        "time": "Now",
+        "animate": true
+      });
       state = state.copyWith(isTyping: false, messages: updatedMessages);
     } else {
       state = state.copyWith(isTyping: false, error: response.error ?? 'Failed to reach AI');
@@ -63,6 +70,6 @@ class AiProviderNotifier extends StateNotifier<AiState> {
   }
 }
 
-final aiProvider = StateNotifierProvider<AiProviderNotifier, AiState>((ref) {
+final aiProvider = StateNotifierProvider.autoDispose<AiProviderNotifier, AiState>((ref) {
   return AiProviderNotifier(ref.watch(aiRepositoryProvider));
 });

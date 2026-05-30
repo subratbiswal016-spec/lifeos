@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:convert';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
+import 'package:animate_do/animate_do.dart';
 
+import '../../../core/widgets/premium_background.dart';
+import '../../../core/widgets/glass_container.dart';
+import '../providers/dashboard_provider.dart';
+import '../providers/daily_tip_provider.dart';
+import '../../ai_coach/screens/ai_coach_screen.dart';
 import '../widgets/daily_tip_card.dart';
 import '../widgets/quick_stats_card.dart';
 import '../widgets/upcoming_reminders.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   final Function(int)? onNavigateTab;
 
   const HomeScreen({super.key, this.onNavigateTab});
@@ -15,215 +23,279 @@ class HomeScreen extends StatelessWidget {
   String _getFormattedDate() {
     final now = DateTime.now();
     final englishDate = DateFormat('EEEE, d MMM').format(now);
-    // Simple mock for Hindi translation of the day
     return '$englishDate • आज'; 
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final dashboardState = ref.watch(dashboardProvider);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtitleColor = isDark ? Colors.white60 : Colors.black54;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      appBar: AppBar(
-        backgroundColor: theme.colorScheme.background,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+      backgroundColor: Colors.transparent,
+      body: PremiumBackground(
+        showOrbs: true,
+        child: Column(
           children: [
-            Text(
-              'Namaste, User! 🙏',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: theme.colorScheme.onBackground,
-              ),
-            ),
-            Text(
-              _getFormattedDate(),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onBackground.withOpacity(0.6),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: InkWell(
-              onTap: () => context.push('/profile'),
-              borderRadius: BorderRadius.circular(20),
-              child: CircleAvatar(
-                backgroundColor: theme.colorScheme.primary.withOpacity(0.2),
-                backgroundImage: const NetworkImage('https://i.pravatar.cc/150?img=11'),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            // Mock refresh since Home currently has static widgets
-            await Future.delayed(const Duration(seconds: 1));
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DailyTipCard(theme: theme),
-                const SizedBox(height: 24),
-                
-                // Daily Check-in Banner
-                InkWell(
-                  onTap: () => context.push('/mood_logger'),
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [const Color(0xFFFF6B35), const Color(0xFFFF6B35).withOpacity(0.8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(color: const Color(0xFFFF6B35).withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))
-                      ]
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Iconsax.note_2, color: Colors.white, size: 28),
-                        ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Daily Check-in', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                              SizedBox(height: 4),
-                              Text('Log your mood, sleep & energy', style: TextStyle(color: Colors.white70, fontSize: 13)),
-                            ],
-                          ),
-                        ),
-                        const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
-                      ],
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 32),
-                
-                Text(
-                  'Quick Access',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                Row(
-                  children: [
-                    Expanded(
-                      child: QuickStatsCard(
-                        title: 'My Life',
-                        subtitle: 'Mood: 😊\nSpend: ₹120',
-                        icon: Iconsax.heart,
-                        color: const Color(0xFFFF6B35),
-                        onTap: () => onNavigateTab?.call(1),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: QuickStatsCard(
-                        title: 'GharLog',
-                        subtitle: '3 Meds Due\nAll Good',
-                        icon: Iconsax.home,
-                        color: const Color(0xFF2D6A4F),
-                        onTap: () => onNavigateTab?.call(2),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: QuickStatsCard(
-                        title: 'PadhoAI',
-                        subtitle: '2h 15m\nStreak: 4',
-                        icon: Iconsax.book,
-                        color: const Color(0xFF6C63FF),
-                        onTap: () => onNavigateTab?.call(3),
-                      ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 32),
-                UpcomingReminders(theme: theme),
-                const SizedBox(height: 100), // padding for FAB
-              ],
-            ),
-          ),
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: null,
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            builder: (context) => Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+            // Custom AppBar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Quick Actions', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 24),
-                  ListTile(
-                    leading: const Icon(Iconsax.note_2, color: Color(0xFFFF6B35)),
-                    title: const Text('Daily Check-in'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push('/mood_logger');
-                    },
+                  dashboardState.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (err, stack) => const SizedBox.shrink(),
+                    data: (data) => FadeInDown(
+                      duration: const Duration(milliseconds: 600),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Namaste, ${data['name'] ?? 'User'}! 🙏',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: textColor,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _getFormattedDate(),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: subtitleColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  ListTile(
-                    leading: const Icon(Iconsax.health, color: Color(0xFFF44336)),
-                    title: const Text('Add Medicine'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push('/add_medicine');
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Iconsax.timer_1, color: Color(0xFF6C63FF)),
-                    title: const Text('Start Study Timer'),
-                    onTap: () {
-                      Navigator.pop(context);
-                      context.push('/padhoai/timer');
-                    },
+                  FadeInRight(
+                    duration: const Duration(milliseconds: 600),
+                    child: InkWell(
+                      onTap: () => context.push('/profile'),
+                      borderRadius: BorderRadius.circular(24),
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: theme.colorScheme.primary, width: 2),
+                        ),
+                        child: CircleAvatar(
+                          backgroundColor: Colors.transparent,
+                          backgroundImage: data['profilePhotoUrl'] != null
+                              ? (data['profilePhotoUrl'].toString().startsWith('data:image')
+                                  ? MemoryImage(base64Decode(data['profilePhotoUrl'].toString().split(',').last))
+                                  : NetworkImage(data['profilePhotoUrl'])) as ImageProvider
+                              : const NetworkImage('https://i.pravatar.cc/150?img=11'),
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-          );
-        },
-        backgroundColor: theme.colorScheme.primary,
-        icon: const Icon(Iconsax.add, color: Colors.white),
-        label: const Text(
-          'Quick Action',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            const SizedBox(height: 16),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  ref.refresh(dashboardProvider);
+                  await Future.delayed(const Duration(milliseconds: 500));
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                  child: dashboardState.when(
+                    loading: () => const Center(child: Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: CircularProgressIndicator(),
+                    )),
+                    error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+                    data: (data) {
+                      final quickStats = data['quickStats'] ?? {};
+                      final reminders = data['reminders'] as List? ?? [];
+                      final dailyTipAsync = ref.watch(dailyTipProvider);
+                      
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FadeInUp(
+                            delay: const Duration(milliseconds: 200),
+                            child: dailyTipAsync.when(
+                              data: (tip) => DailyTipCard(theme: theme, tip: tip),
+                              loading: () => const DailyTipCard(theme: null, tip: 'Analyzing your daily progress...'),
+                              error: (_, __) => const DailyTipCard(theme: null, tip: 'Keep pushing forward!'),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          
+                          // Daily Check-in Banner
+                          FadeInUp(
+                            delay: const Duration(milliseconds: 300),
+                            child: GlassContainer(
+                              onTap: () => context.push('/mood_logger'),
+                              padding: const EdgeInsets.all(20),
+                              color: theme.colorScheme.primary.withOpacity(0.15),
+                              border: Border.all(color: theme.colorScheme.primary.withOpacity(0.3), width: 1),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.primary.withOpacity(0.2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(Iconsax.note_2, color: theme.colorScheme.primary, size: 28),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('Daily Check-in', style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
+                                        const SizedBox(height: 4),
+                                        Text('Log your mood, sleep & energy', style: TextStyle(color: subtitleColor, fontSize: 13)),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(Icons.arrow_forward_ios, color: subtitleColor, size: 16),
+                                ],
+                              ),
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 32),
+                          
+                          FadeInUp(
+                            delay: const Duration(milliseconds: 400),
+                            child: Text(
+                              'Quick Access',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: textColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                  
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            clipBehavior: Clip.none,
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: 140,
+                                  child: FadeInUp(
+                                    delay: const Duration(milliseconds: 500),
+                                    child: QuickStatsCard(
+                                      title: 'My Life',
+                                      subtitle: 'Mood: ${quickStats['mood'] ?? '😊'}\nSleep: ${quickStats['sleep'] ?? 0}h • Nrg: ${quickStats['energy'] ?? 0}%',
+                                      icon: Iconsax.heart,
+                                      color: const Color(0xFFFF6B35),
+                                      onTap: () => onNavigateTab?.call(1),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                SizedBox(
+                                  width: 140,
+                                  child: FadeInUp(
+                                    delay: const Duration(milliseconds: 600),
+                                    child: QuickStatsCard(
+                                      title: 'GharLog',
+                                      subtitle: '${quickStats['familyMembers'] ?? 0} Members\n${quickStats['medsDue'] ?? 0} Meds Due',
+                                      icon: Iconsax.home,
+                                      color: const Color(0xFF2D6A4F),
+                                      onTap: () => onNavigateTab?.call(2),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                SizedBox(
+                                  width: 140,
+                                  child: FadeInUp(
+                                    delay: const Duration(milliseconds: 700),
+                                    child: QuickStatsCard(
+                                      title: 'PadhoAI',
+                                      subtitle: '${quickStats['subjectsStudied'] ?? 0} Subjs • ${quickStats['studyTime'] ?? 0}m\nStreak: ${quickStats['studyStreak'] ?? 0}',
+                                      icon: Iconsax.book,
+                                      color: const Color(0xFF6C63FF),
+                                      onTap: () => onNavigateTab?.call(3),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          FadeInUp(
+                            delay: const Duration(milliseconds: 800),
+                            child: UpcomingReminders(theme: theme, reminders: reminders),
+                          ),
+                          const SizedBox(height: 32),
+                          const SizedBox(height: 100), // Extra padding to clear the global FAB
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FadeInUp(
+        delay: const Duration(milliseconds: 1000),
+        child: FloatingActionButton(
+          heroTag: null,
+          onPressed: () {
+            showModalBottomSheet(
+              context: context,
+              backgroundColor: Colors.transparent,
+              builder: (context) => GlassContainer(
+                borderRadius: 24,
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Quick Actions', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: textColor)),
+                    const SizedBox(height: 24),
+                    ListTile(
+                      leading: const Icon(Iconsax.note_2, color: Color(0xFFFF6B35)),
+                      title: Text('Daily Check-in', style: TextStyle(color: textColor)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.push('/mood_logger');
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Iconsax.health, color: Color(0xFFF44336)),
+                      title: Text('Add Medicine', style: TextStyle(color: textColor)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.push('/add_medicine');
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Iconsax.timer_1, color: Color(0xFF6C63FF)),
+                      title: Text('Start Study Timer', style: TextStyle(color: textColor)),
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.push('/padhoai/timer');
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+          backgroundColor: theme.colorScheme.primary,
+          child: const Icon(Iconsax.add, color: Colors.white),
         ),
       ),
     );

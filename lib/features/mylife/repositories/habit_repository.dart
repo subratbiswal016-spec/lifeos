@@ -55,4 +55,12 @@ class HabitRepository {
       rethrow;
     }
   }
+
+  Future<void> deleteHabit(String habitId) async {
+    try {
+      await _dioClient.dio.delete('${ApiEndpoints.habits}/$habitId');
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

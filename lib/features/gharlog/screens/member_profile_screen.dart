@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/gharlog_provider.dart';
+import '../providers/medicine_provider.dart';
 
 class MemberProfileScreen extends ConsumerWidget {
   final String memberId;
@@ -15,6 +16,7 @@ class MemberProfileScreen extends ConsumerWidget {
     
     final membersAsync = ref.watch(gharLogMembersProvider);
     final symptomsAsync = ref.watch(symptomsProvider(memberId));
+    final medicinesAsync = ref.watch(medicineProvider(memberId));
     
     // Find member
     final member = membersAsync.value?.firstWhere((m) => m.id == memberId);
@@ -34,7 +36,7 @@ class MemberProfileScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           await ref.read(symptomsProvider(memberId).notifier).fetchSymptoms();
-          // Optionally, invalidate members provider to refresh the member's details too
+          await ref.read(medicineProvider(memberId).notifier).fetchMedicines();
           await ref.read(gharLogMembersProvider.notifier).fetchMembers();
         },
         child: SingleChildScrollView(
@@ -54,13 +56,83 @@ class MemberProfileScreen extends ConsumerWidget {
                 child: Icon(Iconsax.user, size: 40, color: theme.colorScheme.primary),
               ),
             ),
-            const SizedBox(height: 32),
-            Text('Current Medications', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            _buildInfoCard(theme, 'Dolo 650', '2x Daily - After Meals', Iconsax.health, Colors.red),
-            _buildInfoCard(theme, 'Amlodipine 5mg', '1x Daily - Morning', Iconsax.health, Colors.blue),
+            Text('Age: ${member?.age ?? 'Unknown'} | Relation: ${member?.relation ?? 'Unknown'}', style: TextStyle(fontSize: 16, color: theme.colorScheme.onBackground.withOpacity(0.7))),
             const SizedBox(height: 32),
-            Text('Recent Symptoms & Vitals', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Current Medications', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                IconButton(
+                  onPressed: () => context.push('/add_medicine?memberId=$memberId'),
+                  icon: const Icon(Icons.add_circle_outline),
+                  color: theme.colorScheme.primary,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            medicinesAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error: $err')),
+              data: (medicines) {
+                if (medicines.isEmpty) {
+                  return const Text('No medications recorded.');
+                }
+                return Column(
+                  children: medicines.map((med) => _buildInfoCard(
+                    theme, 
+                    med.name, 
+                    '${med.dose ?? ''} | ${med.timesPerDay ?? 1}x Daily', 
+                    Iconsax.health, 
+                    Colors.red,
+                    onLongPress: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Delete Medicine'),
+                          content: Text('Are you sure you want to delete "${med.name}"?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                              onPressed: () async {
+                                Navigator.pop(context);
+                                try {
+                                  await ref.read(medicineProvider(memberId).notifier).deleteMedicine(med.id);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Medicine deleted')));
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                                  }
+                                }
+                              },
+                              child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  )).toList(),
+                );
+              },
+            ),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Recent Symptoms & Vitals', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                IconButton(
+                  onPressed: () => context.push('/gharlog/symptoms?memberId=$memberId'),
+                  icon: const Icon(Icons.add_circle_outline),
+                  color: theme.colorScheme.primary,
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
             symptomsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -91,17 +163,20 @@ class MemberProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoCard(ThemeData theme, String title, String subtitle, IconData icon, Color color) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.onBackground.withOpacity(0.05)),
-      ),
-      child: Row(
-        children: [
+  Widget _buildInfoCard(ThemeData theme, String title, String subtitle, IconData icon, Color color, {VoidCallback? onLongPress}) {
+    return InkWell(
+      onLongPress: onLongPress,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: theme.colorScheme.onBackground.withOpacity(0.05)),
+        ),
+        child: Row(
+          children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(

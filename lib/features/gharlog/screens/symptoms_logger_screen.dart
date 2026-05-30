@@ -6,7 +6,8 @@ import '../providers/gharlog_provider.dart';
 import '../models/symptom_log_model.dart';
 
 class SymptomsLoggerScreen extends ConsumerStatefulWidget {
-  const SymptomsLoggerScreen({super.key});
+  final String? memberId;
+  const SymptomsLoggerScreen({super.key, this.memberId});
 
   @override
   ConsumerState<SymptomsLoggerScreen> createState() => _SymptomsLoggerScreenState();
@@ -19,6 +20,12 @@ class _SymptomsLoggerScreenState extends ConsumerState<SymptomsLoggerScreen> {
   final _bpDiaController = TextEditingController();
   final _notesController = TextEditingController();
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedMemberId = widget.memberId;
+  }
 
   @override
   void dispose() {

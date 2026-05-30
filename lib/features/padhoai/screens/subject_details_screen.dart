@@ -2,15 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 
-class SubjectDetailsScreen extends StatelessWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/subject_provider.dart';
+
+class SubjectDetailsScreen extends ConsumerWidget {
   final String subjectName;
 
   const SubjectDetailsScreen({super.key, this.subjectName = 'Subject Details'});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final Color padhoColor = const Color(0xFF6C63FF);
+
+    final subjectState = ref.watch(subjectProvider);
+    final subject = subjectState.subjects.firstWhere(
+      (s) => s.name == subjectName,
+      orElse: () => subjectState.subjects.first,
+    );
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
@@ -31,24 +40,43 @@ class SubjectDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: padhoColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: padhoColor.withOpacity(0.2)),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: padhoColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: padhoColor.withOpacity(0.2)),
+                ),
+                child: Column(
+                  children: [
+                    Icon(Iconsax.book, size: 48, color: padhoColor),
+                    const SizedBox(height: 16),
+                    Text('Study Progress', style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Column(
+                          children: [
+                            Text('Daily Target', style: TextStyle(color: theme.colorScheme.onBackground.withOpacity(0.6))),
+                            Text('${subject.dailyTargetHours}h', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: padhoColor)),
+                          ],
+                        ),
+                        Container(width: 1, height: 40, color: padhoColor.withOpacity(0.2)),
+                        Column(
+                          children: [
+                            Text('Weekly Target', style: TextStyle(color: theme.colorScheme.onBackground.withOpacity(0.6))),
+                            Text('${subject.weeklyTargetHours}h', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: padhoColor)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text('You need to study ${subject.dailyTargetHours}h more today!', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+                  ],
+                ),
               ),
-              child: Column(
-                children: [
-                  Icon(Iconsax.book, size: 48, color: padhoColor),
-                  const SizedBox(height: 16),
-                  Text('Total Study Time', style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  Text('12h 30m', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: padhoColor)),
-                ],
-              ),
-            ),
             const SizedBox(height: 32),
             Text('Recent Mock Tests', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),

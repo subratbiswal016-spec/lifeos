@@ -29,7 +29,12 @@ class _AppTextFieldState extends State<AppTextField> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final hintColor = isDark ? Colors.white.withOpacity(0.4) : Colors.black38;
+    final borderColor = isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1);
+    final fillColor = isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.03);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -37,7 +42,8 @@ class _AppTextFieldState extends State<AppTextField> {
           widget.label,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w600,
-            color: theme.colorScheme.onBackground.withOpacity(0.8),
+            color: textColor.withOpacity(0.9),
+            letterSpacing: 0.5,
           ),
         ),
         const SizedBox(height: 8),
@@ -45,15 +51,16 @@ class _AppTextFieldState extends State<AppTextField> {
           controller: widget.controller,
           obscureText: widget.isPassword ? _obscureText : false,
           keyboardType: widget.keyboardType,
-          style: theme.textTheme.bodyLarge,
+          style: TextStyle(color: textColor, fontSize: 16),
           decoration: InputDecoration(
             hintText: widget.hint,
+            hintStyle: TextStyle(color: hintColor),
             prefixIcon: Icon(widget.prefixIcon, color: theme.colorScheme.primary),
             suffixIcon: widget.isPassword
                 ? IconButton(
                     icon: Icon(
                       _obscureText ? Iconsax.eye_slash : Iconsax.eye,
-                      color: theme.colorScheme.onBackground.withOpacity(0.5),
+                      color: textColor.withOpacity(0.5),
                     ),
                     onPressed: () {
                       setState(() {
@@ -63,15 +70,15 @@ class _AppTextFieldState extends State<AppTextField> {
                   )
                 : null,
             filled: true,
-            fillColor: theme.colorScheme.surface,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            fillColor: fillColor,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: theme.colorScheme.onBackground.withOpacity(0.1)),
+              borderSide: BorderSide(color: borderColor),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: theme.colorScheme.onBackground.withOpacity(0.1)),
+              borderSide: BorderSide(color: borderColor),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -83,3 +90,4 @@ class _AppTextFieldState extends State<AppTextField> {
     );
   }
 }
+

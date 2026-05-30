@@ -34,7 +34,7 @@ class GharLogScreen extends ConsumerWidget {
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.only(left: 24.0, right: 24.0, top: 24.0, bottom: 100.0), // Added bottom padding to clear the FAB
           child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -99,8 +99,30 @@ class GharLogScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             membersAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
+              loading: () => const Center(child: Padding(
+                padding: EdgeInsets.all(32.0),
+                child: CircularProgressIndicator(),
+              )),
+              error: (err, stack) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    children: [
+                      Icon(Iconsax.warning_2, size: 48, color: theme.colorScheme.error),
+                      const SizedBox(height: 16),
+                      Text('Failed to load family members.\nPlease check your connection or backend.', 
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: theme.colorScheme.error)),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () => ref.read(gharLogMembersProvider.notifier).fetchMembers(),
+                        icon: const Icon(Iconsax.refresh),
+                        label: const Text('Retry'),
+                      )
+                    ],
+                  ),
+                ),
+              ),
               data: (members) {
                 if (members.isEmpty) {
                   return const Center(child: Text('No family members yet. Add one!'));
@@ -118,6 +140,38 @@ class GharLogScreen extends ConsumerWidget {
                         onTap: () {
                           // Pass ID instead of name eventually, but keeping route simple for now
                           context.push('/member_profile/${member.id}');
+                        },
+                        onLongPress: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Delete Member'),
+                              content: Text('Are you sure you want to delete ${member.name}? This will also delete their medicines, visits, and symptoms.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                  onPressed: () async {
+                                    Navigator.pop(context); // close dialog
+                                    try {
+                                      await ref.read(gharLogMembersProvider.notifier).deleteMember(member.id);
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member deleted')));
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                                      }
+                                    }
+                                  },
+                                  child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          );
                         },
                       ),
                     );

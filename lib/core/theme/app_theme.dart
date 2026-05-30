@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const Color primary = Color(0xFFFF6B35); // saffron orange
-  static const Color secondary = Color(0xFF2D6A4F); // deep green
-  static const Color aiAccent = Color(0xFF6C63FF); // purple
+  // Premium Palette
+  static const Color primary = Color(0xFFFF9F1C); // Saffron Gold
+  static const Color secondary = Color(0xFF2EC4B6); // Teal/Emerald
+  static const Color aiAccent = Color(0xFF8338EC); // Deep Violet
   static const Color success = Color(0xFF4CAF50);
   static const Color warning = Color(0xFFFFC107);
-  static const Color error = Color(0xFFF44336);
+  static const Color error = Color(0xFFFF3366); // Vibrant Red
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -17,11 +18,24 @@ class AppTheme {
         brightness: Brightness.light,
         primary: primary,
         secondary: secondary,
-        background: const Color(0xFFF8F9FA),
+        background: const Color(0xFFFAFAFA),
         surface: const Color(0xFFFFFFFF),
+        onBackground: const Color(0xFF1A1A24),
       ),
-      textTheme: GoogleFonts.plusJakartaSansTextTheme(
+      textTheme: GoogleFonts.outfitTextTheme(
         ThemeData.light().textTheme,
+      ),
+      cardTheme: const CardThemeData(
+        elevation: 8,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(24))),
+      ),
+      appBarTheme: const AppBarTheme(
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -34,11 +48,24 @@ class AppTheme {
         brightness: Brightness.dark,
         primary: primary,
         secondary: secondary,
-        background: const Color(0xFF0D0D0D),
-        surface: const Color(0xFF1A1A1A),
+        background: const Color(0xFF0F0F13), // OLED-friendly deep dark
+        surface: const Color(0xFF1C1C24), // Slightly lighter surface
+        onBackground: const Color(0xFFE0E0E0),
       ),
-      textTheme: GoogleFonts.plusJakartaSansTextTheme(
+      textTheme: GoogleFonts.outfitTextTheme(
         ThemeData.dark().textTheme,
+      ),
+      cardTheme: const CardThemeData(
+        elevation: 8,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(24))),
+      ),
+      appBarTheme: const AppBarTheme(
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }

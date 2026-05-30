@@ -1,15 +1,112 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:go_router/go_router.dart';
+import '../providers/subject_provider.dart';
+import '../models/subject_model.dart';
 
-class PadhoAIScreen extends StatelessWidget {
+class PadhoAIScreen extends ConsumerStatefulWidget {
   const PadhoAIScreen({super.key});
+
+  @override
+  ConsumerState<PadhoAIScreen> createState() => _PadhoAIScreenState();
+}
+
+class _PadhoAIScreenState extends ConsumerState<PadhoAIScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => ref.read(subjectProvider.notifier).fetchSubjects());
+  }
+
+  void _showAddSubjectDialog(BuildContext context, ThemeData theme) {
+    final formKey = GlobalKey<FormState>();
+    String name = '';
+    int weeklyTargetHours = 10;
+    int dailyTargetHours = 2;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Add Subject', style: TextStyle(color: theme.colorScheme.onBackground, fontWeight: FontWeight.bold)),
+        backgroundColor: theme.colorScheme.surface,
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Subject Name',
+                  prefixIcon: Icon(Iconsax.book),
+                ),
+                validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                onSaved: (value) => name = value!,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Weekly Target (Hours)',
+                  prefixIcon: Icon(Iconsax.timer),
+                ),
+                keyboardType: TextInputType.number,
+                initialValue: '10',
+                validator: (value) => value == null || int.tryParse(value) == null ? 'Enter valid number' : null,
+                onSaved: (value) => weeklyTargetHours = int.parse(value!),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Daily Target (Hours)',
+                  prefixIcon: Icon(Iconsax.clock),
+                ),
+                keyboardType: TextInputType.number,
+                initialValue: '2',
+                validator: (value) => value == null || int.tryParse(value) == null ? 'Enter valid number' : null,
+                onSaved: (value) => dailyTargetHours = int.parse(value!),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
+                Navigator.pop(context);
+                
+                final success = await ref.read(subjectProvider.notifier).addSubject({
+                  'name': name,
+                  'weeklyTargetHours': weeklyTargetHours,
+                  'dailyTargetHours': dailyTargetHours,
+                  'emoji': '📚',
+                  'color': '#6C63FF',
+                });
+                
+                if (success && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Subject added successfully!')),
+                  );
+                }
+              }
+            },
+            child: const Text('Add Subject'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final Color padhoColor = const Color(0xFF6C63FF); // PadhoAI Purple
+    final subjectState = ref.watch(subjectProvider);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
@@ -22,7 +119,7 @@ class PadhoAIScreen extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.only(left: 24.0, right: 24.0, top: 24.0, bottom: 100.0), // Padding for FAB
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -89,25 +186,7 @@ class PadhoAIScreen extends StatelessWidget {
                 children: [
                   Text('Your Subjects', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                   TextButton.icon(
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Add Subject'),
-                          content: const Text('Subject form will appear here.'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Cancel'),
-                            ),
-                            ElevatedButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Add'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                    onPressed: () => _showAddSubjectDialog(context, theme),
                     icon: const Icon(Iconsax.add),
                     label: const Text('Add'),
                   ),
@@ -117,20 +196,53 @@ class PadhoAIScreen extends StatelessWidget {
             const SizedBox(height: 16),
             FadeInUp(
               delay: const Duration(milliseconds: 400),
-              child: GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 0.85,
-                children: [
-                  _buildSubjectCard(context, 'Mathematics', 'UPSC CSAT', Iconsax.math, const Color(0xFFE91E63)),
-                  _buildSubjectCard(context, 'History', 'Modern India', Iconsax.book, const Color(0xFF9C27B0)),
-                  _buildSubjectCard(context, 'Polity', 'Indian Const.', Iconsax.bank, const Color(0xFF3F51B5)),
-                  _buildSubjectCard(context, 'Geography', 'World & India', Iconsax.global, const Color(0xFF009688)),
-                ],
-              ),
+              child: subjectState.isLoading 
+                ? const Center(child: CircularProgressIndicator())
+                : subjectState.subjects.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(32.0),
+                        child: Column(
+                          children: [
+                            Icon(Iconsax.book_1, size: 48, color: theme.colorScheme.onBackground.withOpacity(0.5)),
+                            const SizedBox(height: 16),
+                            Text('No subjects added yet.', style: TextStyle(color: theme.colorScheme.onBackground.withOpacity(0.5))),
+                          ],
+                        ),
+                      ),
+                    )
+                  : GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        childAspectRatio: 0.85,
+                      ),
+                      itemCount: subjectState.subjects.length,
+                      itemBuilder: (context, index) {
+                        final subject = subjectState.subjects[index];
+                        // Convert string color '#6C63FF' to Color
+                        Color color = padhoColor;
+                        try {
+                          if (subject.color.startsWith('#')) {
+                            color = Color(int.parse(subject.color.substring(1, 7), radix: 16) + 0xFF000000);
+                          }
+                        } catch (e) {
+                          // Ignore parsing error, fallback to default padhoColor
+                        }
+                        
+                        return _buildSubjectCard(
+                          context, 
+                          subject, 
+                          '${subject.weeklyTargetHours}h Target', 
+                          Iconsax.book, 
+                          color,
+                          ref
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -138,11 +250,43 @@ class PadhoAIScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSubjectCard(BuildContext context, String title, String subtitle, IconData icon, Color color) {
+  Widget _buildSubjectCard(BuildContext context, dynamic subject, String subtitle, IconData icon, Color color, WidgetRef ref) {
     final theme = Theme.of(context);
     return InkWell(
       onTap: () {
-        context.push('/padhoai/subject/$title');
+        context.push('/padhoai/subject/${subject.name}');
+      },
+      onLongPress: () {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Delete Subject'),
+            content: Text('Are you sure you want to delete "${subject.name}"?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () async {
+                  Navigator.pop(context);
+                  try {
+                    await ref.read(subjectProvider.notifier).deleteSubject(subject.id);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Subject deleted')));
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    }
+                  }
+                },
+                child: const Text('Delete', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
       },
       borderRadius: BorderRadius.circular(24),
       child: Container(
@@ -167,7 +311,7 @@ class PadhoAIScreen extends StatelessWidget {
               child: Icon(icon, color: color, size: 32),
             ),
             const Spacer(),
-            Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 4),
             Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onBackground.withOpacity(0.6))),
           ],

@@ -44,6 +44,38 @@ class ManageHabitsScreen extends ConsumerWidget {
                     onTap: () {
                       ref.read(habitsProvider.notifier).toggleHabitCompletion(habit.id);
                     },
+                    onLongPress: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Delete Habit'),
+                          content: Text('Are you sure you want to delete "${habit.name}"?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                              onPressed: () async {
+                                Navigator.pop(context);
+                                try {
+                                  await ref.read(habitsProvider.notifier).deleteHabit(habit.id);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Habit deleted')));
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                                  }
+                                }
+                              },
+                              child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   )).toList(),
                 );
               },
