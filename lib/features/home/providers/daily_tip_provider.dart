@@ -6,7 +6,7 @@ final dailyTipProvider = FutureProvider.autoDispose<String>((ref) async {
   final dioClient = ref.watch(dioClientProvider);
   
   try {
-    final response = await dioClient.dio.get('${ApiEndpoints.ai}/daily-tip');
+    final response = await dioClient.dio.post('${ApiEndpoints.ai}/daily-tip');
     if (response.data['success'] == true) {
       return response.data['data']['tip'] as String;
     } else {

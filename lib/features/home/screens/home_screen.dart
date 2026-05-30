@@ -87,10 +87,10 @@ class HomeScreen extends ConsumerWidget {
                         ),
                         child: CircleAvatar(
                           backgroundColor: Colors.transparent,
-                          backgroundImage: dashboardState.value?['profilePhotoUrl'] != null
-                              ? (dashboardState.value!['profilePhotoUrl'].toString().startsWith('data:image')
-                                  ? MemoryImage(base64Decode(dashboardState.value!['profilePhotoUrl'].toString().split(',').last))
-                                  : NetworkImage(dashboardState.value!['profilePhotoUrl'])) as ImageProvider
+                          backgroundImage: dashboardState.valueOrNull?['profilePhotoUrl'] != null
+                              ? (dashboardState.valueOrNull!['profilePhotoUrl'].toString().startsWith('data:image')
+                                  ? MemoryImage(base64Decode(dashboardState.valueOrNull!['profilePhotoUrl'].toString().split(',').last))
+                                  : NetworkImage(dashboardState.valueOrNull!['profilePhotoUrl'])) as ImageProvider
                               : const NetworkImage('https://i.pravatar.cc/150?img=11'),
                         ),
                       ),
