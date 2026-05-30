@@ -87,10 +87,10 @@ class HomeScreen extends ConsumerWidget {
                         ),
                         child: CircleAvatar(
                           backgroundColor: Colors.transparent,
-                          backgroundImage: data['profilePhotoUrl'] != null
-                              ? (data['profilePhotoUrl'].toString().startsWith('data:image')
-                                  ? MemoryImage(base64Decode(data['profilePhotoUrl'].toString().split(',').last))
-                                  : NetworkImage(data['profilePhotoUrl'])) as ImageProvider
+                          backgroundImage: dashboardState.value?['profilePhotoUrl'] != null
+                              ? (dashboardState.value!['profilePhotoUrl'].toString().startsWith('data:image')
+                                  ? MemoryImage(base64Decode(dashboardState.value!['profilePhotoUrl'].toString().split(',').last))
+                                  : NetworkImage(dashboardState.value!['profilePhotoUrl'])) as ImageProvider
                               : const NetworkImage('https://i.pravatar.cc/150?img=11'),
                         ),
                       ),
@@ -127,8 +127,8 @@ class HomeScreen extends ConsumerWidget {
                             delay: const Duration(milliseconds: 200),
                             child: dailyTipAsync.when(
                               data: (tip) => DailyTipCard(theme: theme, tip: tip),
-                              loading: () => const DailyTipCard(theme: null, tip: 'Analyzing your daily progress...'),
-                              error: (_, __) => const DailyTipCard(theme: null, tip: 'Keep pushing forward!'),
+                              loading: () => DailyTipCard(theme: theme, tip: 'Analyzing your daily progress...'),
+                              error: (_, __) => DailyTipCard(theme: theme, tip: 'Keep pushing forward!'),
                             ),
                           ),
                           const SizedBox(height: 24),

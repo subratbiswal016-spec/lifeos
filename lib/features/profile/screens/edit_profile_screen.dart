@@ -28,7 +28,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _emailController = TextEditingController();
   final _cityController = TextEditingController();
   final _budgetController = TextEditingController();
-  final _budgetController = TextEditingController();
   bool _isLoading = false;
   
   String? _base64Image;

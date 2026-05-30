@@ -311,7 +311,7 @@ class _PadhoAIScreenState extends ConsumerState<PadhoAIScreen> {
               child: Icon(icon, color: color, size: 32),
             ),
             const Spacer(),
-            Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+            Text(subject.name, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 4),
             Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onBackground.withOpacity(0.6))),
           ],

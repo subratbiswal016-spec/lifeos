@@ -198,6 +198,7 @@ class MemberProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }
