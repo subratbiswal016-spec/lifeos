@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/mylife/screens/mylife_screen.dart';
 import '../features/gharlog/screens/gharlog_screen.dart';
 import '../features/padhoai/screens/padhoai_screen.dart';
 import '../features/ai_coach/screens/ai_coach_screen.dart';
-import '../features/premium/screens/premium_screen.dart';
+import '../core/theme/app_localizations.dart';
 
-class MainNavigation extends StatefulWidget {
+class MainNavigation extends ConsumerStatefulWidget {
   const MainNavigation({super.key});
 
   @override
-  State<MainNavigation> createState() => _MainNavigationState();
+  ConsumerState<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
+class _MainNavigationState extends ConsumerState<MainNavigation> {
   int _currentIndex = 0;
 
   List<Widget> _getScreens() {
@@ -35,6 +36,7 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final loc = ref.watch(localizationsProvider);
 
     return PopScope(
       canPop: _currentIndex == 0,
@@ -60,11 +62,11 @@ class _MainNavigationState extends State<MainNavigation> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(Iconsax.home, 'Home', 0),
-            _buildNavItem(Iconsax.heart, 'My Life', 1),
+            _buildNavItem(Iconsax.home, loc.translate('home'), 0),
+            _buildNavItem(Iconsax.heart, loc.translate('my_life'), 1),
             const SizedBox(width: 48), // Space for FAB
-            _buildNavItem(Iconsax.home_hashtag, 'Family', 2),
-            _buildNavItem(Iconsax.book, 'Study', 3),
+            _buildNavItem(Iconsax.home_hashtag, loc.translate('ghar_log'), 2),
+            _buildNavItem(Iconsax.book, loc.translate('padho_ai'), 3),
           ],
         ),
       ),

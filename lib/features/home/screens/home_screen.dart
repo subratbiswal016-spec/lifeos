@@ -17,6 +17,7 @@ import '../../../core/widgets/app_text_field.dart';
 import '../widgets/daily_tip_card.dart';
 import '../widgets/quick_stats_card.dart';
 import '../widgets/upcoming_reminders.dart';
+import '../../../core/theme/app_localizations.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   final Function(int)? onNavigateTab;
@@ -30,10 +31,10 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   bool _hasShownOnboardingDialog = false;
 
-  String _getFormattedDate() {
+  String _getFormattedDate(String todayLoc) {
     final now = DateTime.now();
     final englishDate = DateFormat('EEEE, d MMM').format(now);
-    return '$englishDate • Today'; 
+    return '$englishDate • $todayLoc'; 
   }
 
   Future<void> _showOnboardingDialog(BuildContext context, ThemeData theme) async {
@@ -208,6 +209,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final loc = ref.watch(localizationsProvider);
     final dashboardState = ref.watch(dashboardProvider);
     final isDark = theme.brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black87;
@@ -243,7 +245,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _getFormattedDate(),
+                            _getFormattedDate(loc.translate('today')),
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: subtitleColor,
                               fontWeight: FontWeight.w500,
@@ -326,9 +328,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           FadeInUp(
                             delay: const Duration(milliseconds: 200),
                             child: dailyTipState.when(
-                              loading: () => DailyTipCard(theme: theme, tip: 'Generating your AI tip... ✨', title: 'AI Daily Tip'),
-                              error: (e, st) => DailyTipCard(theme: theme, tip: 'Take a deep breath and start your day. (AI tip unavailable)', title: 'Daily Tip'),
-                              data: (tip) => DailyTipCard(theme: theme, tip: tip, title: 'AI Daily Tip'),
+                              loading: () => DailyTipCard(theme: theme, tip: 'Generating your AI tip... ✨', title: loc.translate('ai_daily_tip')),
+                              error: (e, st) => DailyTipCard(theme: theme, tip: 'Take a deep breath and start your day.', title: loc.translate('ai_daily_tip')),
+                              data: (tip) => DailyTipCard(theme: theme, tip: tip, title: loc.translate('ai_daily_tip')),
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -356,9 +358,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text('Daily Check-in', style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
+                                        Text(loc.translate('daily_checkin'), style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold)),
                                         const SizedBox(height: 4),
-                                        Text('Log your mood, sleep & energy', style: TextStyle(color: subtitleColor, fontSize: 13)),
+                                        Text(loc.translate('log_mood'), style: TextStyle(color: subtitleColor, fontSize: 13)),
                                       ],
                                     ),
                                   ),
@@ -373,7 +375,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           FadeInUp(
                             delay: const Duration(milliseconds: 400),
                             child: Text(
-                              'Quick Access',
+                              loc.translate('quick_access'),
                               style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: textColor,
@@ -392,7 +394,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   child: FadeInUp(
                                     delay: const Duration(milliseconds: 500),
                                     child: QuickStatsCard(
-                                      title: 'Udhar',
+                                      title: loc.translate('udhar_manager'),
                                       subtitle: 'Manage debts\nGiven & Taken',
                                       icon: Iconsax.wallet_money,
                                       color: const Color(0xFFE5B300),
@@ -406,7 +408,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   child: FadeInUp(
                                     delay: const Duration(milliseconds: 600),
                                     child: QuickStatsCard(
-                                      title: 'My Life',
+                                      title: loc.translate('my_life'),
                                       subtitle: 'Mood: ${quickStats['mood'] ?? '😊'}\nSleep: ${quickStats['sleep'] ?? 0}h • Nrg: ${quickStats['energy'] ?? 0}%',
                                       icon: Iconsax.heart,
                                       color: const Color(0xFFFF6B35),
@@ -420,7 +422,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   child: FadeInUp(
                                     delay: const Duration(milliseconds: 600),
                                     child: QuickStatsCard(
-                                      title: 'GharLog',
+                                      title: loc.translate('ghar_log'),
                                       subtitle: '${quickStats['familyMembers'] ?? 0} Members\n${quickStats['medsDue'] ?? 0} Meds Due',
                                       icon: Iconsax.home,
                                       color: const Color(0xFF2D6A4F),
@@ -434,7 +436,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   child: FadeInUp(
                                     delay: const Duration(milliseconds: 700),
                                     child: QuickStatsCard(
-                                      title: 'PadhoAI',
+                                      title: loc.translate('padho_ai'),
                                       subtitle: '${quickStats['subjectsStudied'] ?? 0} Subjs • ${quickStats['studyTime'] ?? 0}m\nStreak: ${quickStats['studyStreak'] ?? 0}',
                                       icon: Iconsax.book,
                                       color: const Color(0xFF6C63FF),
