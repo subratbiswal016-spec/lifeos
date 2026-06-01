@@ -1,22 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:iconsax/iconsax.dart';
 
 class AppTextField extends StatefulWidget {
   final String label;
-  final String hint;
+  final String? hint;
   final TextEditingController controller;
-  final IconData prefixIcon;
+  final IconData? prefixIcon;
   final bool isPassword;
   final TextInputType keyboardType;
+  final int? maxLength;
+  final int maxLines;
+  final List<TextInputFormatter>? inputFormatters;
+  final String? Function(String?)? validator;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   const AppTextField({
     super.key,
     required this.label,
-    required this.hint,
+    this.hint,
     required this.controller,
-    required this.prefixIcon,
+    this.prefixIcon,
     this.isPassword = false,
     this.keyboardType = TextInputType.text,
+    this.maxLength,
+    this.maxLines = 1,
+    this.inputFormatters,
+    this.validator,
+    this.readOnly = false,
+    this.onTap,
   });
 
   @override
@@ -51,11 +64,17 @@ class _AppTextFieldState extends State<AppTextField> {
           controller: widget.controller,
           obscureText: widget.isPassword ? _obscureText : false,
           keyboardType: widget.keyboardType,
+          maxLength: widget.maxLength,
+          maxLines: widget.isPassword ? 1 : widget.maxLines,
+          inputFormatters: widget.inputFormatters,
+          validator: widget.validator,
+          readOnly: widget.readOnly,
+          onTap: widget.onTap,
           style: TextStyle(color: textColor, fontSize: 16),
           decoration: InputDecoration(
             hintText: widget.hint,
             hintStyle: TextStyle(color: hintColor),
-            prefixIcon: Icon(widget.prefixIcon, color: theme.colorScheme.primary),
+            prefixIcon: widget.prefixIcon != null ? Icon(widget.prefixIcon, color: theme.colorScheme.primary) : null,
             suffixIcon: widget.isPassword
                 ? IconButton(
                     icon: Icon(

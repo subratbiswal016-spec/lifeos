@@ -4,27 +4,129 @@ import 'package:iconsax/iconsax.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/subject_provider.dart';
+import '../providers/study_provider.dart';
+import '../models/subject_model.dart';
 
-class SubjectDetailsScreen extends ConsumerWidget {
+class SubjectDetailsScreen extends ConsumerStatefulWidget {
   final String subjectName;
 
   const SubjectDetailsScreen({super.key, this.subjectName = 'Subject Details'});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SubjectDetailsScreen> createState() => _SubjectDetailsScreenState();
+}
+
+class _SubjectDetailsScreenState extends ConsumerState<SubjectDetailsScreen> {
+  void _showEditSubjectDialog(BuildContext context, ThemeData theme, SubjectModel subject) {
+    final formKey = GlobalKey<FormState>();
+    String name = subject.name;
+    int weeklyTargetHours = subject.weeklyTargetHours;
+    int dailyTargetHours = subject.dailyTargetHours;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit Subject', style: TextStyle(color: theme.colorScheme.onBackground, fontWeight: FontWeight.bold)),
+        backgroundColor: theme.colorScheme.surface,
+        content: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  initialValue: name,
+                  decoration: const InputDecoration(
+                    labelText: 'Subject Name',
+                    prefixIcon: Icon(Iconsax.book),
+                  ),
+                  validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                  onSaved: (value) => name = value!,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  initialValue: weeklyTargetHours.toString(),
+                  decoration: const InputDecoration(
+                    labelText: 'Weekly Target (Hours)',
+                    prefixIcon: Icon(Iconsax.timer),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) => value == null || int.tryParse(value) == null ? 'Enter valid number' : null,
+                  onSaved: (value) => weeklyTargetHours = int.parse(value!),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  initialValue: dailyTargetHours.toString(),
+                  decoration: const InputDecoration(
+                    labelText: 'Daily Target (Hours)',
+                    prefixIcon: Icon(Iconsax.clock),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: (value) => value == null || int.tryParse(value) == null ? 'Enter valid number' : null,
+                  onSaved: (value) => dailyTargetHours = int.parse(value!),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                formKey.currentState!.save();
+                Navigator.pop(context);
+                
+                final success = await ref.read(subjectProvider.notifier).updateSubject(subject.id, {
+                  'name': name,
+                  'weeklyTargetHours': weeklyTargetHours,
+                  'dailyTargetHours': dailyTargetHours,
+                });
+                
+                if (success && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Subject updated successfully!')),
+                  );
+                }
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final Color padhoColor = const Color(0xFF6C63FF);
 
     final subjectState = ref.watch(subjectProvider);
     final subject = subjectState.subjects.firstWhere(
-      (s) => s.name == subjectName,
+      (s) => s.name == widget.subjectName,
       orElse: () => subjectState.subjects.first,
     );
+    final todaySessionsAsync = ref.watch(todaySessionsProvider);
+    
+    int todayStudiedMinutes = 0;
+    todaySessionsAsync.whenData((sessions) {
+      for (var s in sessions) {
+        if (s['subjectId'] != null && (s['subjectId']['_id'] == subject.id || s['subjectId'] == subject.id)) {
+          todayStudiedMinutes += (s['durationMinutes'] as num? ?? 0).toInt();
+        }
+      }
+    });
+
+    final todayStudiedHours = (todayStudiedMinutes / 60).toStringAsFixed(1);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
-        title: Text(subjectName, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(widget.subjectName, style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: theme.colorScheme.background,
         elevation: 0,
         leading: IconButton(
@@ -32,7 +134,10 @@ class SubjectDetailsScreen extends ConsumerWidget {
           onPressed: () => context.pop(),
         ),
         actions: [
-          IconButton(icon: const Icon(Iconsax.edit), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Iconsax.edit),
+            onPressed: () => _showEditSubjectDialog(context, theme, subject),
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -73,7 +178,15 @@ class SubjectDetailsScreen extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    Text('You need to study ${subject.dailyTargetHours}h more today!', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+                    Text(
+                      todayStudiedMinutes > 0 
+                        ? 'You have studied $todayStudiedHours h today!'
+                        : 'You need to study ${subject.dailyTargetHours}h more today!',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold, 
+                        color: todayStudiedMinutes >= (subject.dailyTargetHours * 60) ? Colors.green : Colors.orange,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -87,7 +200,7 @@ class SubjectDetailsScreen extends ConsumerWidget {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  context.push('/padhoai/timer');
+                  context.push('/padhoai/timer', extra: subject.id);
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),

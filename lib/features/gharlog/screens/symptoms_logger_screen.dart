@@ -4,6 +4,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/gharlog_provider.dart';
 import '../models/symptom_log_model.dart';
+import '../../../core/widgets/app_text_field.dart';
 
 class SymptomsLoggerScreen extends ConsumerStatefulWidget {
   final String? memberId;
@@ -167,16 +168,12 @@ class _SymptomsLoggerScreenState extends ConsumerState<SymptomsLoggerScreen> {
   }
 
   Widget _buildTextField(ThemeData theme, String label, TextEditingController controller, TextInputType type, {int maxLines = 1}) {
-    return TextField(
+    return AppTextField(
+      label: label,
+      hint: '',
       controller: controller,
       keyboardType: type,
       maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: theme.colorScheme.surface,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-      ),
     );
   }
 }

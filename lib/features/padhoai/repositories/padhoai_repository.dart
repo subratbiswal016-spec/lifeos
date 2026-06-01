@@ -35,12 +35,60 @@ class PadhoaiRepository {
     }
   }
 
-  Future<ApiResponse<dynamic>> saveSession(Map<String, dynamic> data) async {
+  Future<ApiResponse<SubjectModel>> updateSubject(String id, Map<String, dynamic> data) async {
     try {
-      final response = await _dioClient.dio.post('${ApiEndpoints.study}/sessions', data: data);
+      final response = await _dioClient.dio.put('${ApiEndpoints.subjects}/$id', data: data);
+      return ApiResponse<SubjectModel>.fromJson(
+        response.data, 
+        (data) => SubjectModel.fromJson(data as Map<String, dynamic>),
+      );
+    } catch (e) {
+      return ApiResponse.error(e.toString());
+    }
+  }
+
+  Future<ApiResponse<dynamic>> startSession(Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.post('${ApiEndpoints.study}/session/start', data: data);
       return ApiResponse<dynamic>.fromJson(
         response.data, 
         (data) => data
+      );
+    } catch (e) {
+      return ApiResponse.error(e.toString());
+    }
+  }
+
+  Future<ApiResponse<dynamic>> stopSession(String id, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.dio.put('${ApiEndpoints.study}/session/$id/stop', data: data);
+      return ApiResponse<dynamic>.fromJson(
+        response.data, 
+        (data) => data
+      );
+    } catch (e) {
+      return ApiResponse.error(e.toString());
+    }
+  }
+
+  Future<ApiResponse<List<dynamic>>> getTodaySessions() async {
+    try {
+      final response = await _dioClient.dio.get('${ApiEndpoints.study}/sessions/today');
+      return ApiResponse<List<dynamic>>.fromJson(
+        response.data, 
+        (data) => data as List<dynamic>
+      );
+    } catch (e) {
+      return ApiResponse.error(e.toString());
+    }
+  }
+
+  Future<ApiResponse<Map<String, dynamic>>> getStudyStats() async {
+    try {
+      final response = await _dioClient.dio.get('${ApiEndpoints.study}/stats');
+      return ApiResponse<Map<String, dynamic>>.fromJson(
+        response.data, 
+        (data) => data as Map<String, dynamic>
       );
     } catch (e) {
       return ApiResponse.error(e.toString());

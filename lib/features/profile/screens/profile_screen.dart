@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:go_router/go_router.dart';
@@ -85,8 +86,12 @@ class ProfileScreen extends ConsumerWidget {
                                   spreadRadius: 2,
                                 ),
                               ],
-                              image: const DecorationImage(
-                                image: NetworkImage('https://i.pravatar.cc/150?img=11'),
+                              image: DecorationImage(
+                                image: profileData['profilePhotoUrl'] != null 
+                                    ? (profileData['profilePhotoUrl'].startsWith('data:image')
+                                        ? MemoryImage(base64Decode(profileData['profilePhotoUrl'].split(',').last))
+                                        : NetworkImage(profileData['profilePhotoUrl'])) as ImageProvider
+                                    : const NetworkImage('https://i.pravatar.cc/150?img=11'),
                                 fit: BoxFit.cover,
                               ),
                             ),

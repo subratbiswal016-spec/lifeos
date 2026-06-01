@@ -33,10 +33,11 @@ class _PadhoAIScreenState extends ConsumerState<PadhoAIScreen> {
         backgroundColor: theme.colorScheme.surface,
         content: Form(
           key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
                 decoration: const InputDecoration(
                   labelText: 'Subject Name',
                   prefixIcon: Icon(Iconsax.book),
@@ -68,6 +69,7 @@ class _PadhoAIScreenState extends ConsumerState<PadhoAIScreen> {
               ),
             ],
           ),
+        ),
         ),
         actions: [
           TextButton(
@@ -115,7 +117,10 @@ class _PadhoAIScreenState extends ConsumerState<PadhoAIScreen> {
         backgroundColor: theme.colorScheme.background,
         elevation: 0,
         actions: [
-          IconButton(icon: const Icon(Iconsax.chart), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Iconsax.chart),
+            onPressed: () => context.push('/padhoai/stats'),
+          ),
         ],
       ),
       body: SingleChildScrollView(

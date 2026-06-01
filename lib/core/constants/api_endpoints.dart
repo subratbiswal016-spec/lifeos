@@ -1,21 +1,21 @@
 import 'dart:io';
 
 class ApiEndpoints {
-  // static String get baseUrl {
-  //   // For physical Android device: use your PC's WiFi IP
-  //   // For Android emulator: use 10.0.2.2
-  //   // For iOS Simulator / Web / Desktop: use localhost
-  //   try {
-  //     if (Platform.isAndroid) {
-  //       return 'http://192.168.0.73:5000/api'; // Your PC's WiFi IP
-  //     }
-  //   } catch (_) {
-  //     // Fallback for Web
-  //   }
-  //   return 'http://localhost:5000/api'; // iOS Simulator / Web / Desktop
-  // }
+  static String get baseUrl {
+    // For physical Android device: use your PC's WiFi IP
+    // For Android emulator: use 10.0.2.2
+    // For iOS Simulator / Web / Desktop: use localhost
+    try {
+      if (Platform.isAndroid) {
+        return 'http://192.168.0.73:5000/api'; // Your PC's WiFi IP
+      }
+    } catch (_) {
+      // Fallback for Web
+    }
+    return 'http://localhost:3000/api'; // iOS Simulator / Web / Desktop
+  }
   // Use the live Render URL
-  static const String baseUrl = 'https://lifeos-backend-m5gl.onrender.com/api';
+  // static const String baseUrl = 'https://lifeos-backend-m5gl.onrender.com/api';
     
   // Auth
   static const String login = '/auth/login';
@@ -53,4 +53,7 @@ class ApiEndpoints {
   // AI Coach
   static const String ai = '/ai';
   static const String aiChat = '/ai/chat';
+
+  // Udhar
+  static const String udhar = '/udhar';
 }

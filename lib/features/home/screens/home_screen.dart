@@ -8,17 +8,27 @@ import 'package:animate_do/animate_do.dart';
 
 import '../../../core/widgets/premium_background.dart';
 import '../../../core/widgets/glass_container.dart';
+import '../../../core/network/dio_client.dart';
+import '../../../core/constants/api_endpoints.dart';
 import '../providers/dashboard_provider.dart';
 import '../providers/daily_tip_provider.dart';
 import '../../ai_coach/screens/ai_coach_screen.dart';
+import '../../../core/widgets/app_text_field.dart';
 import '../widgets/daily_tip_card.dart';
 import '../widgets/quick_stats_card.dart';
 import '../widgets/upcoming_reminders.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   final Function(int)? onNavigateTab;
 
   const HomeScreen({super.key, this.onNavigateTab});
+
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  bool _hasShownOnboardingDialog = false;
 
   String _getFormattedDate() {
     final now = DateTime.now();
@@ -26,8 +36,177 @@ class HomeScreen extends ConsumerWidget {
     return '$englishDate • आज'; 
   }
 
+  Future<void> _showOnboardingDialog(BuildContext context, ThemeData theme) async {
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+    final TextEditingController phoneController = TextEditingController();
+    final TextEditingController cityController = TextEditingController();
+    final TextEditingController prepController = TextEditingController();
+    final TextEditingController wakeController = TextEditingController();
+    final TextEditingController sleepController = TextEditingController();
+    final TextEditingController budgetController = TextEditingController();
+    bool isLoading = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              child: GlassContainer(
+                padding: const EdgeInsets.all(24),
+                borderRadius: 24,
+                child: Form(
+                  key: formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Complete Profile 🎉',
+                          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Just a few more details to get you started on LifeOS.',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.8)),
+                        ),
+                        const SizedBox(height: 24),
+                        AppTextField(
+                          label: 'Phone Number (10 digits)',
+                          hint: 'Enter your 10 digit phone number',
+                          controller: phoneController,
+                          keyboardType: TextInputType.phone,
+                          maxLength: 10,
+                          validator: (val) {
+                            if (val == null || val.isEmpty) return 'Required';
+                            if (val.length != 10 || int.tryParse(val) == null) return 'Must be exactly 10 digits';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        AppTextField(
+                          label: 'City',
+                          hint: 'Enter your city',
+                          controller: cityController,
+                          maxLength: 50,
+                          validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                        ),
+                        const SizedBox(height: 12),
+                        AppTextField(
+                          label: 'Preparation (e.g. UPSC, JEE, Job)',
+                          hint: 'What are you preparing for?',
+                          controller: prepController,
+                          maxLength: 50,
+                          validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: AppTextField(
+                                label: 'Wake Time',
+                                hint: '06:00 AM',
+                                controller: wakeController,
+                                readOnly: true,
+                                onTap: () async {
+                                  final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                  if (time != null) {
+                                    wakeController.text = time.format(context);
+                                  }
+                                },
+                                validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: AppTextField(
+                                label: 'Sleep Time',
+                                hint: '10:00 PM',
+                                controller: sleepController,
+                                readOnly: true,
+                                onTap: () async {
+                                  final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                                  if (time != null) {
+                                    sleepController.text = time.format(context);
+                                  }
+                                },
+                                validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        AppTextField(
+                          label: 'Monthly Budget (₹)',
+                          hint: 'e.g. 5000',
+                          controller: budgetController,
+                          keyboardType: TextInputType.number,
+                          validator: (val) {
+                            if (val == null || val.isEmpty) return 'Required';
+                            final b = int.tryParse(val);
+                            if (b == null) return 'Invalid number';
+                            if (b > 500000) return 'Maximum budget is ₹5,00,000';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: theme.colorScheme.primary,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            ),
+                            onPressed: isLoading ? null : () async {
+                              if (formKey.currentState!.validate()) {
+                                setState(() => isLoading = true);
+                                try {
+                                  final dioClient = ref.read(dioClientProvider);
+                                  await dioClient.dio.put(
+                                    ApiEndpoints.profile,
+                                    data: {
+                                      'phone': phoneController.text,
+                                      'city': cityController.text,
+                                      'examPreparingFor': prepController.text,
+                                      'wakeTime': wakeController.text,
+                                      'sleepTime': sleepController.text,
+                                      'monthlyBudget': int.parse(budgetController.text)
+                                    },
+                                  );
+                                  if (mounted) {
+                                    Navigator.pop(context);
+                                    ref.refresh(dashboardProvider);
+                                  }
+                                } catch (e) {
+                                  // error handled
+                                } finally {
+                                  if (mounted) setState(() => isLoading = false);
+                                }
+                              }
+                            },
+                            child: isLoading
+                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                : const Text('Save & Continue', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+        );
+      },
+    );
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dashboardState = ref.watch(dashboardProvider);
     final isDark = theme.brightness == Brightness.dark;
@@ -116,6 +295,13 @@ class HomeScreen extends ConsumerWidget {
                     )),
                     error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
                     data: (data) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if ((data['phone'] == null || data['city'] == null || data['monthlyBudget'] == null) && !_hasShownOnboardingDialog) {
+                          _hasShownOnboardingDialog = true;
+                          _showOnboardingDialog(context, theme);
+                        }
+                      });
+
                       final quickStats = data['quickStats'] ?? {};
                       final reminders = data['reminders'] as List? ?? [];
                       final dailyTipAsync = ref.watch(dailyTipProvider);
@@ -192,11 +378,25 @@ class HomeScreen extends ConsumerWidget {
                                   child: FadeInUp(
                                     delay: const Duration(milliseconds: 500),
                                     child: QuickStatsCard(
+                                      title: 'Udhar',
+                                      subtitle: 'Manage debts\nGiven & Taken',
+                                      icon: Iconsax.wallet_money,
+                                      color: const Color(0xFFE5B300),
+                                      onTap: () => context.push('/udhar'),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                SizedBox(
+                                  width: 140,
+                                  child: FadeInUp(
+                                    delay: const Duration(milliseconds: 600),
+                                    child: QuickStatsCard(
                                       title: 'My Life',
                                       subtitle: 'Mood: ${quickStats['mood'] ?? '😊'}\nSleep: ${quickStats['sleep'] ?? 0}h • Nrg: ${quickStats['energy'] ?? 0}%',
                                       icon: Iconsax.heart,
                                       color: const Color(0xFFFF6B35),
-                                      onTap: () => onNavigateTab?.call(1),
+                                      onTap: () => widget.onNavigateTab?.call(1),
                                     ),
                                   ),
                                 ),
@@ -210,7 +410,7 @@ class HomeScreen extends ConsumerWidget {
                                       subtitle: '${quickStats['familyMembers'] ?? 0} Members\n${quickStats['medsDue'] ?? 0} Meds Due',
                                       icon: Iconsax.home,
                                       color: const Color(0xFF2D6A4F),
-                                      onTap: () => onNavigateTab?.call(2),
+                                      onTap: () => widget.onNavigateTab?.call(2),
                                     ),
                                   ),
                                 ),
@@ -224,7 +424,7 @@ class HomeScreen extends ConsumerWidget {
                                       subtitle: '${quickStats['subjectsStudied'] ?? 0} Subjs • ${quickStats['studyTime'] ?? 0}m\nStreak: ${quickStats['studyStreak'] ?? 0}',
                                       icon: Iconsax.book,
                                       color: const Color(0xFF6C63FF),
-                                      onTap: () => onNavigateTab?.call(3),
+                                      onTap: () => widget.onNavigateTab?.call(3),
                                     ),
                                   ),
                                 ),

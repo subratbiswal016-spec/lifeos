@@ -5,6 +5,7 @@ import '../models/medicine_model.dart';
 import '../models/family_member_model.dart';
 import '../providers/medicine_provider.dart';
 import '../providers/gharlog_provider.dart';
+import '../../../core/widgets/app_text_field.dart';
 
 class AddMedicineScreen extends ConsumerStatefulWidget {
   final String? memberId;
@@ -158,15 +159,28 @@ class _AddMedicineScreenState extends ConsumerState<AddMedicineScreen> {
               Text('Medicine Details',
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
-              _buildTextField(theme, 'Medicine Name', 'e.g. Dolo 650', _nameController),
+              _buildTextField(theme, 'Medicine Name', 'e.g. Dolo 650', _nameController, maxLength: 50),
               const SizedBox(height: 16),
-              _buildTextField(theme, 'Dosage', 'e.g. 1 pill', _doseController),
+              _buildTextField(theme, 'Dosage', 'e.g. 1 pill', _doseController, maxLength: 50),
               const SizedBox(height: 32),
               Text('Schedule',
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               _buildTextField(theme, 'Time', 'e.g. 08:00 AM', _timeController,
-                  icon: Icons.access_time),
+                  icon: Icons.access_time, 
+                  readOnly: true,
+                  onTap: () async {
+                    final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                    if (time != null && mounted) {
+                      _timeController.text = time.format(context);
+                    }
+                  },
+                  validator: (val) {
+                if (val == null || val.isEmpty) return 'Required';
+                final regex = RegExp(r'^(1[0-2]|0?[1-9]):[0-5][0-9]\s?(AM|PM|am|pm)$');
+                if (!regex.hasMatch(val)) return 'Invalid time format (e.g. 08:00 AM)';
+                return null;
+              }),
               const SizedBox(height: 48),
               SizedBox(
                 width: double.infinity,
@@ -193,21 +207,16 @@ class _AddMedicineScreenState extends ConsumerState<AddMedicineScreen> {
 
   Widget _buildTextField(
       ThemeData theme, String label, String hint, TextEditingController controller,
-      {IconData? icon}) {
-    return TextFormField(
+      {IconData? icon, int? maxLength, String? Function(String?)? validator, bool readOnly = false, VoidCallback? onTap}) {
+    return AppTextField(
+      label: label,
+      hint: hint,
       controller: controller,
-      validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        filled: true,
-        fillColor: theme.colorScheme.surface,
-        suffixIcon: icon != null ? Icon(icon) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-      ),
+      prefixIcon: icon,
+      maxLength: maxLength,
+      validator: validator ?? (val) => val == null || val.isEmpty ? 'Required' : null,
+      readOnly: readOnly,
+      onTap: onTap,
     );
   }
 }

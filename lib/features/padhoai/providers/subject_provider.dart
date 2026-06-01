@@ -60,6 +60,19 @@ class SubjectProviderNotifier extends StateNotifier<SubjectState> {
       return false;
     }
   }
+
+  Future<bool> updateSubject(String id, Map<String, dynamic> data) async {
+    state = state.copyWith(isLoading: true, error: null);
+    final response = await _repository.updateSubject(id, data);
+    
+    if (response.success) {
+      await fetchSubjects();
+      return true;
+    } else {
+      state = state.copyWith(isLoading: false, error: response.error ?? 'Failed to update subject');
+      return false;
+    }
+  }
 }
 
 final subjectProvider = StateNotifierProvider<SubjectProviderNotifier, SubjectState>((ref) {

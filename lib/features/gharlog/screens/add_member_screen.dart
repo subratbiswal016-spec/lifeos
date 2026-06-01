@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../models/family_member_model.dart';
 import '../providers/gharlog_provider.dart';
+import '../../../core/widgets/app_text_field.dart';
 
 class AddMemberScreen extends ConsumerStatefulWidget {
   const AddMemberScreen({super.key});
@@ -75,6 +76,7 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
                 label: 'Name',
                 hint: 'e.g. Rahul',
                 controller: _nameController,
+                maxLength: 50,
                 validator: (val) => val == null || val.isEmpty ? 'Please enter a name' : null,
               ),
               const SizedBox(height: 16),
@@ -84,22 +86,42 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
                 hint: 'e.g. 45',
                 controller: _ageController,
                 keyboardType: TextInputType.number,
-                validator: (val) => val == null || val.isEmpty ? 'Please enter age' : null,
+                maxLength: 3,
+                validator: (val) {
+                  if (val == null || val.isEmpty) return 'Please enter age';
+                  final age = int.tryParse(val);
+                  if (age == null || age < 1 || age > 120) return 'Please enter a valid age (1-120)';
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _relation,
-                decoration: InputDecoration(
-                  labelText: 'Relation',
-                  filled: true,
-                  fillColor: theme.colorScheme.surface,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                ),
-                items: _relations.map((r) => DropdownMenuItem(value: r, child: Text(r, style: TextStyle(color: textColor)))).toList(),
-                onChanged: (val) {
-                  if (val != null) setState(() => _relation = val);
-                },
-                dropdownColor: theme.colorScheme.surface,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Relation',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: textColor.withOpacity(0.9),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: _relation,
+                    decoration: InputDecoration(
+                      hintText: 'Select Relation',
+                      filled: true,
+                      fillColor: theme.colorScheme.surface,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                    ),
+                    items: _relations.map((r) => DropdownMenuItem(value: r, child: Text(r, style: TextStyle(color: textColor)))).toList(),
+                    onChanged: (val) {
+                      if (val != null) setState(() => _relation = val);
+                    },
+                    dropdownColor: theme.colorScheme.surface,
+                  ),
+                ],
               ),
               const SizedBox(height: 48),
               SizedBox(
@@ -129,19 +151,16 @@ class _AddMemberScreenState extends ConsumerState<AddMemberScreen> {
     required String hint,
     required TextEditingController controller,
     TextInputType? keyboardType,
+    int? maxLength,
     String? Function(String?)? validator,
   }) {
-    return TextFormField(
+    return AppTextField(
+      label: label,
+      hint: hint,
       controller: controller,
-      keyboardType: keyboardType,
+      keyboardType: keyboardType ?? TextInputType.text,
+      maxLength: maxLength,
       validator: validator,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        filled: true,
-        fillColor: theme.colorScheme.surface,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-      ),
     );
   }
 }

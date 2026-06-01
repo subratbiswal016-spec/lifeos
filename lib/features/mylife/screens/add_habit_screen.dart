@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/habit_provider.dart';
 import '../models/habit_model.dart';
+import '../../../core/widgets/app_text_field.dart';
 
 class AddHabitScreen extends ConsumerStatefulWidget {
   const AddHabitScreen({super.key});
@@ -64,9 +65,9 @@ class _AddHabitScreenState extends ConsumerState<AddHabitScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildTextField(theme, 'Habit Name', 'e.g. Morning Yoga', _nameController),
+            _buildTextField(theme, 'Habit Name', 'e.g. Morning Yoga', _nameController, maxLength: 50),
             const SizedBox(height: 16),
-            _buildTextField(theme, 'Category', 'e.g. Health & Fitness', _categoryController),
+            _buildTextField(theme, 'Category', 'e.g. Health & Fitness', _categoryController, maxLength: 50),
             const SizedBox(height: 32),
             Text('Frequency', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
@@ -104,16 +105,12 @@ class _AddHabitScreenState extends ConsumerState<AddHabitScreen> {
     );
   }
 
-  Widget _buildTextField(ThemeData theme, String label, String hint, TextEditingController controller) {
-    return TextField(
+  Widget _buildTextField(ThemeData theme, String label, String hint, TextEditingController controller, {int? maxLength}) {
+    return AppTextField(
+      label: label,
+      hint: hint,
       controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        filled: true,
-        fillColor: theme.colorScheme.surface,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-      ),
+      maxLength: maxLength,
     );
   }
 

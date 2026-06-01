@@ -26,8 +26,17 @@ class StudyProviderNotifier extends StateNotifier<StudyState> {
 
   StudyProviderNotifier(this._repository) : super(StudyState());
 
-  void startTracking(String subject) {
-    state = state.copyWith(isTracking: true, activeSubject: subject, currentSessionDuration: 0);
+  String? _sessionId;
+
+  Future<void> startTracking(String subjectId, bool isPomodoroMode) async {
+    state = state.copyWith(isTracking: true, activeSubject: subjectId, currentSessionDuration: 0);
+    final response = await _repository.startSession({
+      'subjectId': subjectId,
+      'isPomodoroMode': isPomodoroMode,
+    });
+    if (response.success && response.data != null) {
+      _sessionId = response.data['_id'];
+    }
   }
 
   void updateDuration(int seconds) {
@@ -37,12 +46,14 @@ class StudyProviderNotifier extends StateNotifier<StudyState> {
   }
 
   Future<void> endTracking(String notes) async {
-    if (state.isTracking && state.activeSubject != null) {
-      await _repository.saveSession({
-        'subject': state.activeSubject,
-        'duration': state.currentSessionDuration,
-        'notes': notes,
+    if (state.isTracking && _sessionId != null) {
+      await _repository.stopSession(_sessionId!, {
+        'durationMinutes': state.currentSessionDuration ~/ 60,
+        'note': notes,
+        'mood': 4,
+        'energyLevel': 4,
       });
+      _sessionId = null;
       state = state.copyWith(isTracking: false, currentSessionDuration: 0, activeSubject: null);
     }
   }
@@ -50,4 +61,22 @@ class StudyProviderNotifier extends StateNotifier<StudyState> {
 
 final studyProvider = StateNotifierProvider<StudyProviderNotifier, StudyState>((ref) {
   return StudyProviderNotifier(ref.watch(padhoaiRepositoryProvider));
+});
+
+final todaySessionsProvider = FutureProvider<List<dynamic>>((ref) async {
+  final repo = ref.watch(padhoaiRepositoryProvider);
+  final response = await repo.getTodaySessions();
+  if (response.success && response.data != null) {
+    return response.data!;
+  }
+  return [];
+});
+
+final studyStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  final repo = ref.watch(padhoaiRepositoryProvider);
+  final response = await repo.getStudyStats();
+  if (response.success && response.data != null) {
+    return response.data!;
+  }
+  return {};
 });

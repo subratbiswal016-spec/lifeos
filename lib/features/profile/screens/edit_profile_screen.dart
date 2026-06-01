@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/constants/api_endpoints.dart';
+import '../../../core/widgets/app_text_field.dart';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
@@ -24,8 +25,10 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _cityController = TextEditingController();
   final _budgetController = TextEditingController();
   bool _isLoading = false;
@@ -36,12 +39,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _cityController.dispose();
     _budgetController.dispose();
     super.dispose();
   }
 
   Future<void> _updateProfile() async {
+    if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
       final dioClient = ref.read(dioClientProvider);
@@ -50,6 +55,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         data: {
           'name': _nameController.text,
           'email': _emailController.text,
+          'phone': _phoneController.text,
           'city': _cityController.text,
           'monthlyBudget': int.tryParse(_budgetController.text) ?? 0,
           if (_base64Image != null) 'profilePhotoUrl': _base64Image,
@@ -103,14 +109,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           if (_nameController.text.isEmpty && profileData['name'] != null) {
             _nameController.text = profileData['name'] ?? '';
             _emailController.text = profileData['email'] ?? '';
+            _phoneController.text = profileData['phone'] ?? '';
             _cityController.text = profileData['city'] ?? '';
             _budgetController.text = profileData['monthlyBudget']?.toString() ?? '';
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              children: [
+          return Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                children: [
                 Center(
                   child: Stack(
                     children: [
@@ -152,13 +161,31 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                _buildTextField(theme, 'Full Name', _nameController),
+                _buildTextField(theme, 'Full Name', _nameController, maxLength: 50, validator: (val) => val == null || val.isEmpty ? 'Required' : null),
                 const SizedBox(height: 16),
-                _buildTextField(theme, 'Email Address', _emailController),
+                _buildTextField(theme, 'Email Address', _emailController, maxLength: 100, validator: (val) {
+                  if (val == null || val.isEmpty) return 'Required';
+                  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  if (!emailRegex.hasMatch(val)) return 'Please enter a valid email';
+                  return null;
+                }),
                 const SizedBox(height: 16),
-                _buildTextField(theme, 'City', _cityController),
+                _buildTextField(theme, 'Phone Number', _phoneController, keyboardType: TextInputType.phone, maxLength: 10, validator: (val) {
+                  if (val != null && val.isNotEmpty) {
+                    if (val.length != 10 || int.tryParse(val) == null) return 'Must be exactly 10 digits';
+                  }
+                  return null;
+                }),
                 const SizedBox(height: 16),
-                _buildTextField(theme, 'Monthly Budget (₹)', _budgetController, keyboardType: TextInputType.number),
+                _buildTextField(theme, 'City', _cityController, maxLength: 50),
+                const SizedBox(height: 16),
+                _buildTextField(theme, 'Monthly Budget (₹)', _budgetController, keyboardType: TextInputType.number, validator: (val) {
+                  if (val == null || val.isEmpty) return null;
+                  final b = int.tryParse(val);
+                  if (b == null) return 'Invalid number';
+                  if (b > 500000) return 'Maximum budget is ₹5,00,000';
+                  return null;
+                }),
                 const SizedBox(height: 48),
                 SizedBox(
                   width: double.infinity,
@@ -176,22 +203,21 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 ),
               ],
             ),
-          );
-        },
-      ),
-    );
+          ),
+        );
+      },
+    ),
+  );
   }
 
-  Widget _buildTextField(ThemeData theme, String label, TextEditingController controller, {TextInputType? keyboardType}) {
-    return TextFormField(
+  Widget _buildTextField(ThemeData theme, String label, TextEditingController controller, {TextInputType? keyboardType, int? maxLength, String? Function(String?)? validator}) {
+    return AppTextField(
+      label: label,
+      hint: 'Enter $label',
       controller: controller,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: theme.colorScheme.surface,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-      ),
+      keyboardType: keyboardType ?? TextInputType.text,
+      maxLength: maxLength,
+      validator: validator,
     );
   }
 }

@@ -13,6 +13,7 @@ import '../features/gharlog/screens/member_profile_screen.dart';
 import '../features/gharlog/screens/add_medicine_screen.dart';
 import '../features/padhoai/screens/pomodoro_timer_screen.dart';
 import '../features/padhoai/screens/subject_details_screen.dart';
+import '../features/padhoai/screens/study_stats_screen.dart';
 import '../features/profile/screens/edit_profile_screen.dart';
 import '../features/profile/screens/notifications_screen.dart';
 import '../features/profile/screens/privacy_screen.dart';
@@ -21,6 +22,7 @@ import '../features/gharlog/screens/symptoms_logger_screen.dart';
 import '../features/mylife/screens/add_habit_screen.dart';
 import '../features/home/screens/reminder_details_screen.dart';
 import '../features/mylife/screens/life_stats_screen.dart';
+import '../features/udhar/screens/udhar_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -80,7 +82,13 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/padhoai/timer',
-      builder: (context, state) => const PomodoroTimerScreen(),
+      builder: (context, state) => PomodoroTimerScreen(
+        subjectId: state.extra as String?,
+      ),
+    ),
+    GoRoute(
+      path: '/padhoai/stats',
+      builder: (context, state) => const StudyStatsScreen(),
     ),
     GoRoute(
       path: '/padhoai/subject/:name',
@@ -123,6 +131,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/life_stats',
       builder: (context, state) => const LifeStatsScreen(),
+    ),
+    GoRoute(
+      path: '/udhar',
+      builder: (context, state) => const UdharScreen(),
     ),
   ],
 );

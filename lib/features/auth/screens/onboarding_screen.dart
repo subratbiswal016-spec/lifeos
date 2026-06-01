@@ -35,10 +35,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       "image": "assets/images/onboarding3.png",
       "icon": Icons.school,
       "color": const Color(0xFF6C63FF)
-    },
-    {
-      "isForm": true,
-      "color": const Color(0xFF1E1E1E), // Dark theme form
     }
   ];
 

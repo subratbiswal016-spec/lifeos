@@ -3,16 +3,28 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 
-class PomodoroTimerScreen extends StatefulWidget {
-  const PomodoroTimerScreen({super.key});
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/study_provider.dart';
+import '../providers/subject_provider.dart';
+
+class PomodoroTimerScreen extends ConsumerStatefulWidget {
+  final String? subjectId;
+  const PomodoroTimerScreen({super.key, this.subjectId});
 
   @override
-  State<PomodoroTimerScreen> createState() => _PomodoroTimerScreenState();
+  ConsumerState<PomodoroTimerScreen> createState() => _PomodoroTimerScreenState();
 }
 
-class _PomodoroTimerScreenState extends State<PomodoroTimerScreen> {
+class _PomodoroTimerScreenState extends ConsumerState<PomodoroTimerScreen> {
   bool _isSetup = true;
   int _selectedMinutes = 25;
+  String? _selectedSubjectId;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedSubjectId = widget.subjectId;
+  }
 
   bool _isRunning = false;
   int _totalSeconds = 25 * 60;
@@ -39,6 +51,7 @@ class _PomodoroTimerScreenState extends State<PomodoroTimerScreen> {
             setState(() {
               _isRunning = false;
             });
+            _stopTracking();
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Focus Session Completed! 🎉')),
             );
@@ -56,6 +69,18 @@ class _PomodoroTimerScreenState extends State<PomodoroTimerScreen> {
       _isRunning = false;
       _isSetup = true;
     });
+  }
+
+  Future<void> _startTracking() async {
+    if (_selectedSubjectId != null) {
+      await ref.read(studyProvider.notifier).startTracking(_selectedSubjectId!, true);
+    }
+  }
+
+  Future<void> _stopTracking() async {
+    ref.read(studyProvider.notifier).updateDuration(_totalSeconds - _remainingSeconds);
+    await ref.read(studyProvider.notifier).endTracking('Pomodoro session');
+    ref.invalidate(todaySessionsProvider);
   }
 
   String _formatTime(int totalSeconds) {
@@ -85,11 +110,38 @@ class _PomodoroTimerScreenState extends State<PomodoroTimerScreen> {
   }
 
   Widget _buildSetupUI(ThemeData theme, Color padhoColor) {
+    final subjectState = ref.watch(subjectProvider);
+    final subjects = subjectState.subjects;
+    
+    // Default select first if none selected
+    if (_selectedSubjectId == null && subjects.isNotEmpty) {
+      _selectedSubjectId = subjects.first.id;
+    }
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Iconsax.timer_1, size: 80, color: padhoColor),
+          const SizedBox(height: 24),
+          if (subjects.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 48.0, vertical: 8.0),
+              child: DropdownButtonFormField<String>(
+                value: _selectedSubjectId,
+                decoration: InputDecoration(
+                  labelText: 'Select Subject',
+                  filled: true,
+                  fillColor: theme.colorScheme.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                items: subjects.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))).toList(),
+                onChanged: (val) => setState(() => _selectedSubjectId = val),
+              ),
+            ),
           const SizedBox(height: 24),
           Text('Select Focus Duration', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 32),
@@ -114,11 +166,16 @@ class _PomodoroTimerScreenState extends State<PomodoroTimerScreen> {
           const SizedBox(height: 64),
           ElevatedButton(
             onPressed: () {
+              if (_selectedSubjectId == null) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a subject first!')));
+                return;
+              }
               setState(() {
                 _totalSeconds = _selectedMinutes * 60;
                 _remainingSeconds = _totalSeconds;
                 _isSetup = false;
               });
+              _startTracking();
               _toggleTimer(); // Auto-start the timer!
             },
             style: ElevatedButton.styleFrom(
@@ -193,9 +250,10 @@ class _PomodoroTimerScreenState extends State<PomodoroTimerScreen> {
                 child: Icon(_isRunning ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 40),
               ),
               const SizedBox(width: 24),
-              _buildIconButton(Iconsax.stop, () {
+              _buildIconButton(Iconsax.stop, () async {
                 _timer?.cancel();
-                context.pop();
+                await _stopTracking();
+                if (mounted) context.pop();
               }, theme.colorScheme.surface, Colors.red),
             ],
           )

@@ -34,6 +34,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       return;
     }
 
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid email')),
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password must be at least 6 characters')),
+      );
+      return;
+    }
+
     final success = await ref.read(authProvider.notifier).register(name, email, password);
     
     if (success && mounted) {
@@ -128,6 +143,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               hint: 'Enter your name',
                               controller: _nameController,
                               prefixIcon: Iconsax.user,
+                              maxLength: 50,
                             ),
                             const SizedBox(height: 20),
                             AppTextField(
@@ -136,6 +152,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               controller: _emailController,
                               prefixIcon: Iconsax.sms,
                               keyboardType: TextInputType.emailAddress,
+                              maxLength: 100,
                             ),
                             const SizedBox(height: 20),
                             AppTextField(
@@ -144,6 +161,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               controller: _passwordController,
                               prefixIcon: Iconsax.lock,
                               isPassword: true,
+                              maxLength: 50,
                             ),
                             const SizedBox(height: 32),
                             SizedBox(
