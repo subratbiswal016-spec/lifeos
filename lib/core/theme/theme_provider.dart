@@ -1,34 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'app_theme.dart';
 
-final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeMode>((ref) {
+final themeProvider = StateNotifierProvider<ThemeNotifier, AppColorTheme>((ref) {
   return ThemeNotifier();
 });
 
-class ThemeNotifier extends StateNotifier<ThemeMode> {
-  ThemeNotifier() : super(ThemeMode.dark) {
+class ThemeNotifier extends StateNotifier<AppColorTheme> {
+  ThemeNotifier() : super(AppColorTheme.light) {
     _loadTheme();
   }
 
-  static const _key = 'theme_mode';
+  static const _key = 'app_color_theme';
 
   Future<void> _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
-    final themeIndex = prefs.getInt(_key) ?? 2; // Default to dark (2)
-    state = ThemeMode.values[themeIndex];
+    final index = prefs.getInt(_key) ?? 0; // Default to light (0)
+    state = AppColorTheme.values[index];
   }
 
-  Future<void> toggleTheme() async {
+  Future<void> setTheme(AppColorTheme theme) async {
     final prefs = await SharedPreferences.getInstance();
-    if (state == ThemeMode.dark) {
-      state = ThemeMode.light;
-      await prefs.setInt(_key, ThemeMode.light.index);
+    await prefs.setInt(_key, theme.index);
+    state = theme;
+  }
+
+  // Legacy toggle for backward compatibility
+  Future<void> toggleTheme() async {
+    if (state == AppColorTheme.light) {
+      await setTheme(AppColorTheme.dark);
     } else {
-      state = ThemeMode.dark;
-      await prefs.setInt(_key, ThemeMode.dark.index);
+      await setTheme(AppColorTheme.light);
     }
   }
 
-  bool get isDark => state == ThemeMode.dark;
+  bool get isDark => state == AppColorTheme.dark || state == AppColorTheme.ocean || state == AppColorTheme.solarized;
+
+  ThemeData get currentThemeData {
+    switch (state) {
+      case AppColorTheme.light: return AppTheme.lightTheme;
+      case AppColorTheme.dark: return AppTheme.darkTheme;
+      case AppColorTheme.ocean: return AppTheme.oceanTheme;
+      case AppColorTheme.solarized: return AppTheme.forestTheme;
+    }
+  }
 }

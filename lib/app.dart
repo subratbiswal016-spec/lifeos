@@ -9,13 +9,14 @@ class LifeOSApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeProvider);
+    // Watch so app rebuilds when theme changes
+    ref.watch(themeProvider);
+    final themeData = ref.read(themeProvider.notifier).currentThemeData;
 
     return MaterialApp.router(
       title: 'LifeOS India',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeMode,
+      theme: themeData,
+      themeMode: ThemeMode.light,
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,
     );

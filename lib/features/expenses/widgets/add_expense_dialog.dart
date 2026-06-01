@@ -48,13 +48,30 @@ class _AddExpenseDialogState extends ConsumerState<AddExpenseDialog> {
       if (mounted) {
         Navigator.pop(context);
         if (limitMessage != null) {
-          Fluttertoast.showToast(
-            msg: limitMessage,
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.TOP,
-            backgroundColor: limitMessage.contains('exceeded') ? Colors.red : Colors.green,
-            textColor: Colors.white,
-            fontSize: 16.0
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(
+                    limitMessage.contains('exceeded') ? Icons.warning_rounded : Icons.check_circle_outline,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      limitMessage,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: limitMessage.contains('exceeded') ? Colors.red.shade600 : Colors.teal.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              margin: const EdgeInsets.only(bottom: 24, left: 16, right: 16),
+              elevation: 6,
+              duration: const Duration(seconds: 4),
+            ),
           );
         }
       }

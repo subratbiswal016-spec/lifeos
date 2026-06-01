@@ -124,10 +124,11 @@ final appRouter = GoRouter(
       builder: (context, state) => const AddHabitScreen(),
     ),
     GoRoute(
-      path: '/reminder_details/:title',
-      builder: (context, state) => ReminderDetailsScreen(
-        title: state.pathParameters['title'] ?? 'Reminder',
-      ),
+      path: '/reminder_details',
+      builder: (context, state) {
+        final reminder = state.extra as Map<String, dynamic>? ?? {};
+        return ReminderDetailsScreen(reminder: reminder);
+      },
     ),
     GoRoute(
       path: '/life_stats',

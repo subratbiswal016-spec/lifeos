@@ -63,8 +63,8 @@ class _MainNavigationState extends State<MainNavigation> {
             _buildNavItem(Iconsax.home, 'Home', 0),
             _buildNavItem(Iconsax.heart, 'My Life', 1),
             const SizedBox(width: 48), // Space for FAB
-            _buildNavItem(Iconsax.home_hashtag, 'GharLog', 2),
-            _buildNavItem(Iconsax.book, 'Padho', 3),
+            _buildNavItem(Iconsax.home_hashtag, 'Family', 2),
+            _buildNavItem(Iconsax.book, 'Study', 3),
           ],
         ),
       ),
