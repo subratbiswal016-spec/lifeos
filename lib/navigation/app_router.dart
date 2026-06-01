@@ -23,6 +23,7 @@ import '../features/mylife/screens/add_habit_screen.dart';
 import '../features/home/screens/reminder_details_screen.dart';
 import '../features/mylife/screens/life_stats_screen.dart';
 import '../features/udhar/screens/udhar_screen.dart';
+import '../features/expenses/screens/expense_dashboard_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -135,6 +136,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/udhar',
       builder: (context, state) => const UdharScreen(),
+    ),
+    GoRoute(
+      path: '/expenses',
+      builder: (context, state) => const ExpenseDashboardScreen(),
     ),
   ],
 );

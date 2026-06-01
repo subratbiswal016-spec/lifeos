@@ -5,11 +5,13 @@ import '../../../core/widgets/glass_container.dart';
 class DailyTipCard extends StatelessWidget {
   final ThemeData theme;
   final String tip;
+  final String title;
 
   const DailyTipCard({
     super.key, 
     required this.theme,
     required this.tip,
+    this.title = 'AI Daily Tip',
   });
 
   @override
@@ -20,8 +22,8 @@ class DailyTipCard extends StatelessWidget {
     return GlassContainer(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      color: const Color(0xFF6C63FF).withOpacity(0.15),
-      border: Border.all(color: const Color(0xFF6C63FF).withOpacity(0.4), width: 1),
+      color: const Color(0xFF6C63FF).withValues(alpha: 0.15),
+      border: Border.all(color: const Color(0xFF6C63FF).withValues(alpha: 0.4), width: 1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -30,14 +32,14 @@ class DailyTipCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6C63FF).withOpacity(0.3),
+                  color: const Color(0xFF6C63FF).withValues(alpha: 0.3),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Iconsax.magic_star, color: Color(0xFF8C85FF), size: 20),
               ),
               const SizedBox(width: 12),
               Text(
-                'AI Daily Tip',
+                title,
                 style: TextStyle(
                   color: textColor,
                   fontWeight: FontWeight.bold,

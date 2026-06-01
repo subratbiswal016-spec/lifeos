@@ -304,17 +304,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
                       final quickStats = data['quickStats'] ?? {};
                       final reminders = data['reminders'] as List? ?? [];
-                      final dailyTipAsync = ref.watch(dailyTipProvider);
+                      final dailyTipState = ref.watch(dailyTipProvider);
                       
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           FadeInUp(
                             delay: const Duration(milliseconds: 200),
-                            child: dailyTipAsync.when(
-                              data: (tip) => DailyTipCard(theme: theme, tip: tip),
-                              loading: () => DailyTipCard(theme: theme, tip: 'Analyzing your daily progress...'),
-                              error: (_, __) => DailyTipCard(theme: theme, tip: 'Keep pushing forward!'),
+                            child: dailyTipState.when(
+                              loading: () => DailyTipCard(theme: theme, tip: 'Generating your AI tip... ✨', title: 'AI Daily Tip'),
+                              error: (e, st) => DailyTipCard(theme: theme, tip: 'Take a deep breath and start your day. (AI tip unavailable)', title: 'Daily Tip'),
+                              data: (tip) => DailyTipCard(theme: theme, tip: tip, title: 'AI Daily Tip'),
                             ),
                           ),
                           const SizedBox(height: 24),
