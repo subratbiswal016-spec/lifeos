@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-enum AppColorTheme { light, dark, ocean, solarized }
+enum AppColorTheme { light, dark, ocean, solarized, sunset }
 
 extension AppColorThemeExt on AppColorTheme {
   String get displayName {
@@ -10,6 +10,7 @@ extension AppColorThemeExt on AppColorTheme {
       case AppColorTheme.dark: return '🌑 Dark';
       case AppColorTheme.ocean: return '🌊 Deep Ocean';
       case AppColorTheme.solarized: return '🌿 Forest Green';
+      case AppColorTheme.sunset: return '🌇 Sunset Glow';
     }
   }
 }
@@ -26,6 +27,10 @@ class AppTheme {
   // Solarized (Forest Green) Palette
   static const Color forestPrimary = Color(0xFF2D6A4F);
   static const Color forestSecondary = Color(0xFF52B788);
+
+  // Sunset Glow Palette
+  static const Color sunsetPrimary = Color(0xFFFF5A5F);
+  static const Color sunsetSecondary = Color(0xFFFF9E00);
 
   static ThemeData get lightTheme => _buildTheme(
     brightness: Brightness.light,
@@ -64,6 +69,16 @@ class AppTheme {
     background: const Color(0xFF081C15),
     surface: const Color(0xFF1B4332),
     onBackground: const Color(0xFFD8F3DC),
+    textThemeBase: ThemeData.dark().textTheme,
+  );
+
+  static ThemeData get sunsetTheme => _buildTheme(
+    brightness: Brightness.dark,
+    primary: sunsetPrimary,
+    secondary: sunsetSecondary,
+    background: const Color(0xFF180A1C),
+    surface: const Color(0xFF26122C),
+    onBackground: const Color(0xFFFFE5EC),
     textThemeBase: ThemeData.dark().textTheme,
   );
 

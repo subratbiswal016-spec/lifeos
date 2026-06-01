@@ -21,6 +21,13 @@ class GharLogScreen extends ConsumerWidget {
         title: const Text('Ghar Ki Sehat', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: theme.colorScheme.background,
         elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(
+            color: theme.colorScheme.primary.withOpacity(0.15),
+            height: 1.0,
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Iconsax.notification),

@@ -66,6 +66,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
     final authState = ref.watch(authProvider);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtitleColor = isDark ? Colors.white70 : Colors.black54;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -112,7 +115,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         'Create Account',
                         style: theme.textTheme.headlineLarge?.copyWith(
                           fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                          color: textColor,
                           letterSpacing: 1.0,
                         ),
                         textAlign: TextAlign.center,
@@ -125,7 +128,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       child: Text(
                         'Start organizing your life with LifeOS.',
                         style: theme.textTheme.bodyLarge?.copyWith(
-                          color: Colors.white70,
+                          color: subtitleColor,
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -186,7 +189,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           Text(
                             'Already have an account?',
                             style: TextStyle(
-                              color: Colors.white70,
+                              color: subtitleColor,
                             ),
                           ),
                           TextButton(

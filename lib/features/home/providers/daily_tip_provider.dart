@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/constants/api_endpoints.dart';
 
-final dailyTipProvider = FutureProvider.autoDispose<String>((ref) async {
+final dailyTipProvider = FutureProvider<String>((ref) async {
   final dioClient = ref.watch(dioClientProvider);
   
   try {

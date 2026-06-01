@@ -33,7 +33,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   String _getFormattedDate() {
     final now = DateTime.now();
     final englishDate = DateFormat('EEEE, d MMM').format(now);
-    return '$englishDate • आज'; 
+    return '$englishDate • Today'; 
   }
 
   Future<void> _showOnboardingDialog(BuildContext context, ThemeData theme) async {
@@ -276,6 +276,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              height: 1,
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    theme.colorScheme.primary.withOpacity(0.0),
+                    theme.colorScheme.primary.withOpacity(0.35),
+                    theme.colorScheme.primary.withOpacity(0.0),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),

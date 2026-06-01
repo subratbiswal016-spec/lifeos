@@ -32,6 +32,19 @@ class MyLifeScreen extends ConsumerWidget {
                   style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
+              const SizedBox(height: 12),
+              Container(
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primary.withOpacity(0.0),
+                      theme.colorScheme.primary.withOpacity(0.35),
+                      theme.colorScheme.primary.withOpacity(0.0),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 24),
               
               // Daily Logs Banner

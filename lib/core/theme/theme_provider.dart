@@ -35,7 +35,7 @@ class ThemeNotifier extends StateNotifier<AppColorTheme> {
     }
   }
 
-  bool get isDark => state == AppColorTheme.dark || state == AppColorTheme.ocean || state == AppColorTheme.solarized;
+  bool get isDark => state == AppColorTheme.dark || state == AppColorTheme.ocean || state == AppColorTheme.solarized || state == AppColorTheme.sunset;
 
   ThemeData get currentThemeData {
     switch (state) {
@@ -43,6 +43,7 @@ class ThemeNotifier extends StateNotifier<AppColorTheme> {
       case AppColorTheme.dark: return AppTheme.darkTheme;
       case AppColorTheme.ocean: return AppTheme.oceanTheme;
       case AppColorTheme.solarized: return AppTheme.forestTheme;
+      case AppColorTheme.sunset: return AppTheme.sunsetTheme;
     }
   }
 }

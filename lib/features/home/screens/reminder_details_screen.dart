@@ -29,11 +29,17 @@ class _ReminderDetailsScreenState extends ConsumerState<ReminderDetailsScreen> {
     setState(() => _isMarkingDone = true);
     try {
       final dioClient = ref.read(dioClientProvider);
+      final now = DateTime.now();
+      final todayDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final scheduledTime = widget.reminder['time'] ?? '00:00';
+
       await dioClient.dio.post(
         '${ApiEndpoints.baseUrl}${ApiEndpoints.toggleMedicine(id)}',
         data: {
-          'takenAt': DateTime.now().toIso8601String(),
+          'date': todayDate,
+          'scheduledTime': scheduledTime,
           'status': 'taken',
+          'takenAt': now.toIso8601String(),
         },
       );
       setState(() => _isDone = true);
@@ -157,6 +163,54 @@ class _ReminderDetailsScreenState extends ConsumerState<ReminderDetailsScreen> {
     );
   }
 
+  Future<void> _deleteReminder() async {
+    final id = widget.reminder['id'] as String?;
+    if (id == null || id.isEmpty) {
+      _showSnack('Cannot delete: medicine ID not found.', isError: true);
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Delete Reminder?', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: Text(
+          'Are you sure you want to delete "${widget.reminder['title']}" reminder? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final dioClient = ref.read(dioClientProvider);
+      await dioClient.dio.delete('${ApiEndpoints.baseUrl}/medicine/$id');
+      ref.invalidate(dashboardProvider);
+      if (mounted) {
+        _showSnack('Reminder deleted.', isError: false);
+        await Future.delayed(const Duration(milliseconds: 600));
+        if (mounted) context.pop();
+      }
+    } catch (e) {
+      _showSnack('Could not delete. Please try again.', isError: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -271,11 +325,29 @@ class _ReminderDetailsScreenState extends ConsumerState<ReminderDetailsScreen> {
               ),
             ),
             const SizedBox(height: 12),
+            // Delete Reminder button
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton.icon(
+                onPressed: _deleteReminder,
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.red, width: 1.5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                ),
+                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                label: const Text(
+                  'Delete Reminder',
+                  style: TextStyle(color: Colors.red, fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: TextButton(
                 onPressed: () => context.pop(),
-                child: Text('Go Back', style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.5))),
+                child: Text('Go Back', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5))),
               ),
             ),
           ],
