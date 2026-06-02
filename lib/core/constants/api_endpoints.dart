@@ -20,10 +20,13 @@ class ApiEndpoints {
   // Auth
   static const String login = '/auth/login';
   static const String register = '/auth/register';
+  static const String forgotPassword = '/auth/forgot-password';
+  static const String resetPassword = '/auth/reset-password';
   
   // Dashboard & Profile
   static const String dashboard = '/user/dashboard';
   static const String profile = '/user/profile';
+  static const String changePassword = '/user/change-password';
   
   // Check-ins
   static const String checkins = '/dailylog';
@@ -57,4 +60,7 @@ class ApiEndpoints {
 
   // Udhar
   static const String udhar = '/udhar';
+
+  // Data Export
+  static const String exportData = '/user/export-data';
 }

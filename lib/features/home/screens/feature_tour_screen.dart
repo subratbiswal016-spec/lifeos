@@ -3,18 +3,20 @@ import 'package:animate_do/animate_do.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/premium_background.dart';
 import '../../../core/widgets/glass_container.dart';
 
-class FeatureTourScreen extends StatefulWidget {
+class FeatureTourScreen extends ConsumerStatefulWidget {
   const FeatureTourScreen({super.key});
 
   @override
-  State<FeatureTourScreen> createState() => _FeatureTourScreenState();
+  ConsumerState<FeatureTourScreen> createState() => _FeatureTourScreenState();
 }
 
-class _FeatureTourScreenState extends State<FeatureTourScreen> {
+class _FeatureTourScreenState extends ConsumerState<FeatureTourScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
@@ -55,7 +57,12 @@ class _FeatureTourScreenState extends State<FeatureTourScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('has_seen_feature_tour', true);
     if (mounted) {
-      context.go('/home');
+      final isAuthenticated = ref.read(authProvider).isAuthenticated;
+      if (isAuthenticated) {
+        context.go('/home');
+      } else {
+        context.go('/login');
+      }
     }
   }
 

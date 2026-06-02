@@ -53,13 +53,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final success = await ref.read(authProvider.notifier).register(name, email, password);
     
     if (success && mounted) {
-      final prefs = await SharedPreferences.getInstance();
-      final hasSeenTour = prefs.getBool('has_seen_feature_tour') ?? false;
-      if (!hasSeenTour) {
-        context.go('/feature_tour');
-      } else {
-        context.go('/home');
-      }
+      context.go('/home');
     } else if (mounted) {
       final error = ref.read(authProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(

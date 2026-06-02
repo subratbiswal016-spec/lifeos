@@ -42,4 +42,32 @@ class AuthRepository {
       // Ignore errors on logout since we'll delete the local token anyway
     }
   }
+
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiEndpoints.forgotPassword,
+        data: {'email': email},
+      );
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> resetPassword(String email, String otp, String newPassword) async {
+    try {
+      final response = await _dioClient.dio.post(
+        ApiEndpoints.resetPassword,
+        data: {
+          'email': email,
+          'otp': otp,
+          'newPassword': newPassword,
+        },
+      );
+      return response.data;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
