@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -5,6 +7,7 @@ class MemberCard extends StatelessWidget {
   final String name;
   final String relation;
   final String age;
+  final String? photoUrl;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
@@ -13,6 +16,7 @@ class MemberCard extends StatelessWidget {
     required this.name,
     required this.relation,
     required this.age,
+    this.photoUrl,
     required this.onTap,
     this.onLongPress,
   });
@@ -48,14 +52,30 @@ class MemberCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              height: 60,
-              width: 60,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Iconsax.user, color: Colors.white, size: 30),
+            Builder(
+              builder: (context) {
+                Uint8List? photoBytes;
+                if (photoUrl != null && photoUrl!.startsWith('data:image')) {
+                  try {
+                    final b64 = photoUrl!.split(',').last;
+                    photoBytes = base64Decode(b64);
+                  } catch (_) {}
+                }
+                return Container(
+                  height: 60,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                    image: photoBytes != null
+                        ? DecorationImage(image: MemoryImage(photoBytes), fit: BoxFit.cover)
+                        : null,
+                  ),
+                  child: photoBytes == null
+                      ? const Icon(Iconsax.user, color: Colors.white, size: 30)
+                      : null,
+                );
+              }
             ),
             const SizedBox(width: 16),
             Expanded(

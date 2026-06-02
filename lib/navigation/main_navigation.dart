@@ -49,16 +49,21 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
         body: _getScreens()[_currentIndex],
       floatingActionButton: FloatingActionButton(
         heroTag: null,
+        shape: const CircleBorder(), // Force it to be perfectly circular to fit the notch
+        elevation: 4,
         onPressed: () {
           Navigator.push(context, MaterialPageRoute(builder: (_) => const AICoachScreen()));
         },
         backgroundColor: const Color(0xFF6C63FF),
-        child: const Icon(Icons.auto_awesome, color: Colors.white),
+        child: const Icon(Icons.auto_awesome, color: Colors.white, size: 28),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
+        notchMargin: 6.0,
+        clipBehavior: Clip.antiAlias,
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        height: 64.0,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -81,8 +86,9 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
 
     return InkWell(
       onTap: () => setState(() => _currentIndex = index),
+      borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 0.0),
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,

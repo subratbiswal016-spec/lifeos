@@ -202,7 +202,7 @@ class MyLifeScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Udhar Manager',
+                                'Money Manager',
                                 style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                               SizedBox(height: 4),

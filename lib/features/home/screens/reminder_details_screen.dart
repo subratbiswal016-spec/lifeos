@@ -17,7 +17,13 @@ class ReminderDetailsScreen extends ConsumerStatefulWidget {
 
 class _ReminderDetailsScreenState extends ConsumerState<ReminderDetailsScreen> {
   bool _isMarkingDone = false;
-  bool _isDone = false;
+  late bool _isDone;
+
+  @override
+  void initState() {
+    super.initState();
+    _isDone = widget.reminder['isTaken'] == true;
+  }
 
   Future<void> _markAsDone() async {
     final id = widget.reminder['id'] as String?;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/auth_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -21,7 +22,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       if (mounted) {
         final isAuthenticated = ref.read(authProvider).isAuthenticated;
         if (isAuthenticated) {
-          context.go('/home');
+          final prefs = await SharedPreferences.getInstance();
+          final hasSeenTour = prefs.getBool('has_seen_feature_tour') ?? false;
+          if (!hasSeenTour) {
+            context.go('/feature_tour');
+          } else {
+            context.go('/home');
+          }
         } else {
           context.go('/onboarding');
         }

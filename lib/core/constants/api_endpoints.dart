@@ -34,6 +34,7 @@ class ApiEndpoints {
   static String toggleHabit(String id) => '/habits/$id/complete';
   
   // Family / GharLog
+  static const String gharlogBase = '/gharlog';
   static const String members = '/gharlog/members';
   static String doctorVisits(String memberId) => '/visits/$memberId';
   static const String addVisit = '/visits';

@@ -1,8 +1,10 @@
 import 'package:go_router/go_router.dart';
+import 'package:lifeos_ui/features/padhoai/screens/study_stats_screen.dart';
 import '../features/auth/screens/splash_screen.dart';
 import '../features/auth/screens/onboarding_screen.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
+import '../features/home/screens/feature_tour_screen.dart';
 import '../navigation/main_navigation.dart';
 import '../features/premium/screens/premium_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
@@ -11,13 +13,14 @@ import '../features/mylife/screens/checkin_screen.dart';
 import '../features/mylife/screens/manage_habits_screen.dart';
 import '../features/gharlog/screens/member_profile_screen.dart';
 import '../features/gharlog/screens/add_medicine_screen.dart';
+import '../features/gharlog/models/medicine_model.dart';
 import '../features/padhoai/screens/pomodoro_timer_screen.dart';
 import '../features/padhoai/screens/subject_details_screen.dart';
-import '../features/padhoai/screens/study_stats_screen.dart';
 import '../features/profile/screens/edit_profile_screen.dart';
 import '../features/profile/screens/notifications_screen.dart';
 import '../features/profile/screens/privacy_screen.dart';
 import '../features/gharlog/screens/doctor_visits_screen.dart';
+import '../features/gharlog/screens/add_doctor_visit_screen.dart';
 import '../features/gharlog/screens/symptoms_logger_screen.dart';
 import '../features/mylife/screens/add_habit_screen.dart';
 import '../features/home/screens/reminder_details_screen.dart';
@@ -43,6 +46,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/register',
       builder: (context, state) => const RegisterScreen(),
+    ),
+    GoRoute(
+      path: '/feature_tour',
+      builder: (context, state) => const FeatureTourScreen(),
     ),
     GoRoute(
       path: '/home',
@@ -79,6 +86,7 @@ final appRouter = GoRouter(
       path: '/add_medicine',
       builder: (context, state) => AddMedicineScreen(
         memberId: state.uri.queryParameters['memberId'],
+        existingMedicine: state.extra as MedicineModel?,
       ),
     ),
     GoRoute(
@@ -112,6 +120,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/gharlog/doctor_visits',
       builder: (context, state) => const DoctorVisitsScreen(),
+    ),
+    GoRoute(
+      path: '/add_doctor_visit',
+      builder: (context, state) => const AddDoctorVisitScreen(),
     ),
     GoRoute(
       path: '/gharlog/symptoms',

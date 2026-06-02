@@ -230,28 +230,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   dashboardState.when(
                     loading: () => const SizedBox.shrink(),
                     error: (err, stack) => const SizedBox.shrink(),
-                    data: (data) => FadeInDown(
-                      duration: const Duration(milliseconds: 600),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Namaste, ${data['name'] ?? 'User'}! 🙏',
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: textColor,
-                              letterSpacing: 0.5,
+                    data: (data) => Expanded(
+                      child: FadeInDown(
+                        duration: const Duration(milliseconds: 600),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Hello, ${data['name'] ?? 'User'}! 🙏',
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                color: textColor,
+                                letterSpacing: 0.5,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _getFormattedDate(loc.translate('today')),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: subtitleColor,
-                              fontWeight: FontWeight.w500,
+                            const SizedBox(height: 4),
+                            Text(
+                              _getFormattedDate(loc.translate('today')),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: subtitleColor,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -266,14 +270,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           shape: BoxShape.circle,
                           border: Border.all(color: theme.colorScheme.primary, width: 2),
                         ),
-                        child: CircleAvatar(
-                          backgroundColor: Colors.transparent,
-                          backgroundImage: dashboardState.valueOrNull?['profilePhotoUrl'] != null
-                              ? (dashboardState.valueOrNull!['profilePhotoUrl'].toString().startsWith('data:image')
-                                  ? MemoryImage(base64Decode(dashboardState.valueOrNull!['profilePhotoUrl'].toString().split(',').last))
-                                  : NetworkImage(dashboardState.valueOrNull!['profilePhotoUrl'])) as ImageProvider
-                              : const NetworkImage('https://i.pravatar.cc/150?img=11'),
-                        ),
+                        child: dashboardState.valueOrNull?['profilePhotoUrl'] != null
+                            ? CircleAvatar(
+                                backgroundColor: Colors.transparent,
+                                backgroundImage: (dashboardState.valueOrNull!['profilePhotoUrl'].toString().startsWith('data:image')
+                                    ? MemoryImage(base64Decode(dashboardState.valueOrNull!['profilePhotoUrl'].toString().split(',').last))
+                                    : NetworkImage(dashboardState.valueOrNull!['profilePhotoUrl'])) as ImageProvider,
+                              )
+                            : CircleAvatar(
+                                backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                                child: Icon(Icons.person, color: theme.colorScheme.primary),
+                              ),
                       ),
                     ),
                   ),

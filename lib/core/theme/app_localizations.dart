@@ -21,7 +21,7 @@ class AppLocalizations {
       AppLanguage.tamil: 'பதோ AI',
     },
     'ghar_log': {
-      AppLanguage.english: 'Ghar Log',
+      AppLanguage.english: 'My Family',
       AppLanguage.hindi: 'घर लॉग',
       AppLanguage.odia: 'ଘର ଲଗ୍',
       AppLanguage.tamil: 'கார் லாக்',
@@ -139,6 +139,55 @@ class AppLocalizations {
       AppLanguage.hindi: 'कुल शेष',
       AppLanguage.odia: 'ନେଟ୍ ବାଲାନ୍ସ',
       AppLanguage.tamil: 'நிகர இருப்பு',
+    },
+    // Family Relations
+    'rel_self': {
+      AppLanguage.english: 'Self',
+      AppLanguage.hindi: 'स्वयं',
+      AppLanguage.odia: 'ନିଜେ',
+      AppLanguage.tamil: 'சுய',
+    },
+    'rel_papa': {
+      AppLanguage.english: 'Father',
+      AppLanguage.hindi: 'पापा',
+      AppLanguage.odia: 'ବାପା',
+      AppLanguage.tamil: 'அப்பா',
+    },
+    'rel_maa': {
+      AppLanguage.english: 'Mother',
+      AppLanguage.hindi: 'माँ',
+      AppLanguage.odia: 'ମା',
+      AppLanguage.tamil: 'அம்மா',
+    },
+    'rel_dadi': {
+      AppLanguage.english: 'Grand Mother',
+      AppLanguage.hindi: 'दादी',
+      AppLanguage.odia: 'ଜେଜେମା',
+      AppLanguage.tamil: 'பாட்டி',
+    },
+    'rel_nana': {
+      AppLanguage.english: 'Grand Father',
+      AppLanguage.hindi: 'नाना',
+      AppLanguage.odia: 'ଅଜା',
+      AppLanguage.tamil: 'தாத்தா',
+    },
+    'rel_child': {
+      AppLanguage.english: 'Child',
+      AppLanguage.hindi: 'बच्चा',
+      AppLanguage.odia: 'ପିଲା',
+      AppLanguage.tamil: 'குழந்தை',
+    },
+    'rel_spouse': {
+      AppLanguage.english: 'Spouse',
+      AppLanguage.hindi: 'पति/पत्नी',
+      AppLanguage.odia: 'ସ୍ୱାମୀ/ସ୍ତ୍ରୀ',
+      AppLanguage.tamil: 'கணவன்/மனைவி',
+    },
+    'rel_other': {
+      AppLanguage.english: 'Other',
+      AppLanguage.hindi: 'अन्य',
+      AppLanguage.odia: 'ଅନ୍ୟ',
+      AppLanguage.tamil: 'மற்றவை',
     },
   };
 

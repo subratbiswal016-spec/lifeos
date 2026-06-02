@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../providers/doctor_visit_provider.dart';
 
-class DoctorVisitsScreen extends StatelessWidget {
+class DoctorVisitsScreen extends ConsumerWidget {
   const DoctorVisitsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final visitsAsync = ref.watch(doctorVisitsProvider);
+
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
@@ -14,16 +19,43 @@ class DoctorVisitsScreen extends StatelessWidget {
         backgroundColor: theme.colorScheme.background,
         elevation: 0,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(24.0),
-        children: [
-          _buildVisitCard(theme, 'Dr. Sharma (Cardiologist)', 'Oct 15, 2023 - 10:00 AM', 'Papa', true),
-          const SizedBox(height: 16),
-          _buildVisitCard(theme, 'Dr. Gupta (General)', 'Nov 02, 2023 - 04:30 PM', 'Maa', false),
-        ],
+      body: RefreshIndicator(
+        onRefresh: () => ref.read(doctorVisitsProvider.notifier).fetchVisits(),
+        child: visitsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, _) => Center(child: Text('Error: $err')),
+          data: (visits) {
+            if (visits.isEmpty) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  SizedBox(height: 100),
+                  Center(child: Text('No doctor visits logged yet.')),
+                ],
+              );
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.all(24.0),
+              itemCount: visits.length,
+              itemBuilder: (context, index) {
+                final visit = visits[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: _buildVisitCard(
+                    theme,
+                    visit.doctorName,
+                    visit.date,
+                    visit.member?.name ?? 'Unknown',
+                    true, // You could parse date to check if it's upcoming
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () => context.push('/add_doctor_visit'),
         backgroundColor: theme.colorScheme.primary,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Book Appointment', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

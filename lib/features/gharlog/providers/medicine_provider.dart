@@ -36,6 +36,20 @@ class MedicineNotifier extends StateNotifier<AsyncValue<List<MedicineModel>>> {
     }
   }
 
+  Future<void> updateMedicine(String medicineId, MedicineModel medicine) async {
+    try {
+      final updatedMedicine = await _repository.updateMedicine(medicineId, medicine);
+      if (state.hasValue) {
+        state = AsyncValue.data([
+          for (final med in state.value!)
+            if (med.id == medicineId) updatedMedicine else med
+        ]);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> toggleMedicineLog(String medicineId) async {
     try {
       final updatedMedicine = await _repository.toggleMedicineLog(medicineId);

@@ -23,8 +23,9 @@ class StudyState {
 
 class StudyProviderNotifier extends StateNotifier<StudyState> {
   final PadhoaiRepository _repository;
+  final Ref _ref;
 
-  StudyProviderNotifier(this._repository) : super(StudyState());
+  StudyProviderNotifier(this._repository, this._ref) : super(StudyState());
 
   String? _sessionId;
 
@@ -55,12 +56,14 @@ class StudyProviderNotifier extends StateNotifier<StudyState> {
       });
       _sessionId = null;
       state = state.copyWith(isTracking: false, currentSessionDuration: 0, activeSubject: null);
+      _ref.invalidate(studyStatsProvider);
+      _ref.invalidate(todaySessionsProvider);
     }
   }
 }
 
 final studyProvider = StateNotifierProvider<StudyProviderNotifier, StudyState>((ref) {
-  return StudyProviderNotifier(ref.watch(padhoaiRepositoryProvider));
+  return StudyProviderNotifier(ref.watch(padhoaiRepositoryProvider), ref);
 });
 
 final todaySessionsProvider = FutureProvider<List<dynamic>>((ref) async {

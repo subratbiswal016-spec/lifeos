@@ -1,9 +1,16 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/gharlog_provider.dart';
 import '../providers/medicine_provider.dart';
+import '../../home/providers/dashboard_provider.dart'; // Added
+import '../../../core/network/dio_client.dart'; // Added
+import '../../../core/constants/api_endpoints.dart'; // Added
+import '../../../core/theme/app_localizations.dart';
+import 'add_member_screen.dart';
 
 class MemberProfileScreen extends ConsumerWidget {
   final String memberId;
@@ -13,6 +20,7 @@ class MemberProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final loc = ref.watch(localizationsProvider);
     
     final membersAsync = ref.watch(gharLogMembersProvider);
     final symptomsAsync = ref.watch(symptomsProvider(memberId));
@@ -32,6 +40,15 @@ class MemberProfileScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          if (member != null)
+            IconButton(
+              icon: const Icon(Iconsax.edit),
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => AddMemberScreen(existingMember: member)));
+              },
+            ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -46,18 +63,37 @@ class MemberProfileScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                ),
-                child: Icon(Iconsax.user, size: 40, color: theme.colorScheme.primary),
+              child: Builder(
+                builder: (context) {
+                  Uint8List? photoBytes;
+                  if (member?.photoUrl != null && member!.photoUrl!.startsWith('data:image')) {
+                    try {
+                      final b64 = member.photoUrl!.split(',').last;
+                      photoBytes = base64Decode(b64);
+                    } catch (e) {
+                      debugPrint('Error decoding base64 image: $e');
+                    }
+                  }
+
+                  return Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      image: photoBytes != null
+                          ? DecorationImage(image: MemoryImage(photoBytes), fit: BoxFit.cover)
+                          : null,
+                    ),
+                    child: photoBytes == null
+                        ? Icon(Iconsax.user, size: 40, color: theme.colorScheme.primary)
+                        : null,
+                  );
+                }
               ),
             ),
             const SizedBox(height: 16),
-            Text('Age: ${member?.age ?? 'Unknown'} | Relation: ${member?.relation ?? 'Unknown'}', style: TextStyle(fontSize: 16, color: theme.colorScheme.onBackground.withOpacity(0.7))),
+            Text('Age: ${member?.age ?? 'Unknown'} | Relation: ${loc.translate(member?.relation ?? 'Unknown')}', style: TextStyle(fontSize: 16, color: theme.colorScheme.onBackground.withOpacity(0.7))),
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -79,13 +115,12 @@ class MemberProfileScreen extends ConsumerWidget {
                   return const Text('No medications recorded.');
                 }
                 return Column(
-                  children: medicines.map((med) => _buildInfoCard(
-                    theme, 
-                    med.name, 
-                    '${med.dose ?? ''} | ${med.timesPerDay ?? 1}x Daily', 
-                    Iconsax.health, 
-                    Colors.red,
-                    onLongPress: () {
+                  children: medicines.map((med) {
+                    final durationText = med.durationDays != null && med.durationDays! > 0 
+                        ? ' for ${med.durationDays} days' 
+                        : '';
+                    return InkWell(
+                      onLongPress: () {
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
@@ -116,8 +151,120 @@ class MemberProfileScreen extends ConsumerWidget {
                           ],
                         ),
                       );
-                    }
-                  )).toList(),
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            theme.colorScheme.primary.withOpacity(0.1),
+                            theme.colorScheme.surface,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: theme.colorScheme.primary.withOpacity(0.2)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: theme.colorScheme.primary.withOpacity(0.05),
+                            blurRadius: 15,
+                            offset: const Offset(0, 5),
+                          )
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary.withOpacity(0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Iconsax.health, color: theme.colorScheme.primary, size: 28),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(child: Text(med.name, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold))),
+                                    IconButton(
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                      icon: Icon(Iconsax.edit, color: theme.colorScheme.primary, size: 18),
+                                      onPressed: () {
+                                        context.push('/add_medicine?memberId=$memberId', extra: med);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text('${med.dose ?? ''} • ${med.timesPerDay ?? 1}x Daily$durationText', style: TextStyle(color: theme.colorScheme.onBackground.withOpacity(0.7), fontSize: 13)),
+                                if (med.reminderTimes != null && med.reminderTimes!.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 6,
+                                    runSpacing: 6,
+                                    children: med.reminderTimes!.map((time) {
+                                      final isTaken = med.takenTimes?.contains(time) ?? false;
+                                      return InkWell(
+                                        onTap: isTaken ? null : () async {
+                                          try {
+                                            final dioClient = ref.read(dioClientProvider);
+                                            final now = DateTime.now();
+                                            final todayDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+                                            await dioClient.dio.post(
+                                              '${ApiEndpoints.baseUrl}${ApiEndpoints.toggleMedicine(med.id)}',
+                                              data: {
+                                                'date': todayDate,
+                                                'scheduledTime': time,
+                                                'status': 'taken',
+                                                'takenAt': now.toIso8601String(),
+                                              },
+                                            );
+                                            ref.invalidate(medicineProvider(memberId));
+                                            ref.invalidate(dashboardProvider);
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Marked as taken!')));
+                                            }
+                                          } catch (e) {
+                                            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error marking as taken')));
+                                          }
+                                        },
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: isTaken ? Colors.grey : theme.colorScheme.primary,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(isTaken ? Icons.check : Iconsax.clock, size: 12, color: Colors.white),
+                                              const SizedBox(width: 4),
+                                              Text(time, style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold, decoration: isTaken ? TextDecoration.lineThrough : null)),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ]
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
                 );
               },
             ),

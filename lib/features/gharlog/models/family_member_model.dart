@@ -44,6 +44,7 @@ class FamilyMemberModel {
       'allergies': allergies,
       'doctorName': doctorName,
       'doctorPhone': doctorPhone,
+      if (photoUrl != null) 'photoUrl': photoUrl,
     };
   }
 }

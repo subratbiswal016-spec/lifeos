@@ -5,7 +5,10 @@ class MedicineModel {
   final String? dose;
   final int? timesPerDay;
   final List<String>? reminderTimes;
-  final bool isActive;
+  final int? durationDays;
+  final int? remainingQuantity;
+  final bool? isActive;
+  final List<String>? takenTimes;
 
   MedicineModel({
     required this.id,
@@ -14,7 +17,10 @@ class MedicineModel {
     this.dose,
     this.timesPerDay,
     this.reminderTimes,
-    this.isActive = true,
+    this.durationDays,
+    this.remainingQuantity,
+    this.isActive,
+    this.takenTimes,
   });
 
   factory MedicineModel.fromJson(Map<String, dynamic> json) {
@@ -24,8 +30,11 @@ class MedicineModel {
       name: json['name'] ?? '',
       dose: json['dose'],
       timesPerDay: json['timesPerDay'],
+      durationDays: json['durationDays'],
+      remainingQuantity: json['remainingQuantity'],
       reminderTimes: json['reminderTimes'] != null ? List<String>.from(json['reminderTimes']) : null,
-      isActive: json['isActive'] ?? true,
+      isActive: json['isActive'],
+      takenTimes: json['takenTimes'] != null ? List<String>.from(json['takenTimes']) : null,
     );
   }
 
@@ -35,6 +44,7 @@ class MedicineModel {
       'name': name,
       'dose': dose,
       'timesPerDay': timesPerDay,
+      'durationDays': durationDays,
       'reminderTimes': reminderTimes,
     };
   }

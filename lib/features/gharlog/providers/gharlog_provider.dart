@@ -36,6 +36,20 @@ class GharLogMembersNotifier extends StateNotifier<AsyncValue<List<FamilyMemberM
     }
   }
 
+  Future<void> updateMember(String memberId, FamilyMemberModel member) async {
+    try {
+      final updatedMember = await _repository.updateMember(memberId, member);
+      if (state.hasValue) {
+        state = AsyncValue.data([
+          for (final m in state.value!)
+            if (m.id == memberId) updatedMember else m
+        ]);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> deleteMember(String memberId) async {
     try {
       await _repository.deleteMember(memberId);

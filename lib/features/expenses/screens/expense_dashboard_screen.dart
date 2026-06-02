@@ -10,11 +10,18 @@ import '../models/expense_model.dart';
 import '../widgets/add_expense_dialog.dart';
 import '../../../core/widgets/glass_container.dart';
 
-class ExpenseDashboardScreen extends ConsumerWidget {
+class ExpenseDashboardScreen extends ConsumerStatefulWidget {
   const ExpenseDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ExpenseDashboardScreen> createState() => _ExpenseDashboardScreenState();
+}
+
+class _ExpenseDashboardScreenState extends ConsumerState<ExpenseDashboardScreen> {
+  int touchedIndex = -1;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final asyncData = ref.watch(expensesProvider);
@@ -54,16 +61,17 @@ class ExpenseDashboardScreen extends ConsumerWidget {
             const Color(0xFFECC94B),
           ];
 
-          int colorIdx = 0;
-          final pieSections = categoryTotals.entries.map((e) {
-            final color = colors[colorIdx % colors.length];
-            colorIdx++;
+          final pieSections = categoryTotals.entries.toList().asMap().entries.map((e) {
+            final idx = e.key;
+            final entry = e.value;
+            final isTouched = idx == touchedIndex;
+            final color = colors[idx % colors.length];
             return PieChartSectionData(
-              value: e.value,
-              title: e.key,
+              value: entry.value,
+              title: isTouched ? '₹${entry.value.toStringAsFixed(0)}' : entry.key,
               color: color,
-              radius: 50,
-              titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+              radius: isTouched ? 60.0 : 50.0,
+              titleStyle: TextStyle(fontSize: isTouched ? 12 : 10, fontWeight: FontWeight.bold, color: Colors.white),
             );
           }).toList();
 
@@ -120,10 +128,21 @@ class ExpenseDashboardScreen extends ConsumerWidget {
                             ],
                           ),
                           if (budget > 0) ...[
+                            const SizedBox(height: 12),
+                            Divider(color: Colors.grey.withOpacity(0.2)),
                             const SizedBox(height: 8),
                             Text(
                               'Monthly Budget: ₹${budget.toStringAsFixed(0)}',
                               style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Remaining Amount: ₹${(budget - totalSpent).toStringAsFixed(0)}',
+                              style: TextStyle(
+                                fontSize: 14, 
+                                fontWeight: FontWeight.bold,
+                                color: (budget - totalSpent) >= 0 ? Colors.green : Colors.red,
+                              ),
                             ),
                             if (totalSpent > budget)
                               Container(
@@ -161,6 +180,17 @@ class ExpenseDashboardScreen extends ConsumerWidget {
                         height: 200,
                         child: PieChart(
                           PieChartData(
+                            pieTouchData: PieTouchData(
+                              touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                                setState(() {
+                                  if (!event.isInterestedForInteractions || pieTouchResponse == null || pieTouchResponse.touchedSection == null) {
+                                    touchedIndex = -1;
+                                    return;
+                                  }
+                                  touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                                });
+                              },
+                            ),
                             sections: pieSections,
                             centerSpaceRadius: 40,
                             sectionsSpace: 2,
@@ -216,25 +246,26 @@ class ExpenseDashboardScreen extends ConsumerWidget {
                             color: isDark ? Colors.grey[900] : Colors.white,
                             elevation: 0,
                             child: ListTile(
-                              contentPadding: const EdgeInsets.all(16),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                               leading: Container(
-                                padding: const EdgeInsets.all(12),
+                                padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
                                   color: isIncome ? Colors.green.withOpacity(0.1) : theme.colorScheme.primary.withOpacity(0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   isIncome ? Iconsax.arrow_down : Iconsax.arrow_up_2, 
-                                  color: isIncome ? Colors.green : theme.colorScheme.primary
+                                  color: isIncome ? Colors.green : theme.colorScheme.primary,
+                                  size: 20,
                                 ),
                               ),
-                              title: Text(expense.category, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text(expense.category, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   if (expense.note != null && expense.note!.isNotEmpty)
-                                    Text(expense.note!, style: const TextStyle(fontSize: 12)),
-                                  const SizedBox(height: 4),
+                                    Text(expense.note!, style: const TextStyle(fontSize: 11)),
+                                  const SizedBox(height: 2),
                                   Text(
                                     DateFormat('MMM dd, yyyy').format(expense.date),
                                     style: const TextStyle(fontSize: 10, color: Colors.grey),
@@ -245,7 +276,7 @@ class ExpenseDashboardScreen extends ConsumerWidget {
                                 '${isIncome ? '+' : '-'}₹${expense.amount.toStringAsFixed(0)}',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: 15,
                                   color: isIncome ? Colors.green : Colors.red,
                                 ),
                               ),
@@ -254,6 +285,7 @@ class ExpenseDashboardScreen extends ConsumerWidget {
                         ),
                       );
                     }).toList(),
+                    const SizedBox(height: 80), // Prevent FAB from blocking last transaction
                 ],
               ),
             ),

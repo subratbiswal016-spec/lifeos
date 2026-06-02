@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:go_router/go_router.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../providers/study_provider.dart';
 
 class StudyStatsScreen extends ConsumerWidget {
@@ -57,6 +58,11 @@ class StudyStatsScreen extends ConsumerWidget {
                 const SizedBox(height: 32),
                 FadeInUp(
                   delay: const Duration(milliseconds: 200),
+                  child: _buildWeeklyGraph(theme, padhoColor, stats['dailyBreakdown'] ?? []),
+                ),
+                const SizedBox(height: 32),
+                FadeInUp(
+                  delay: const Duration(milliseconds: 300),
                   child: Text('Subject Breakdown', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                 ),
                 const SizedBox(height: 16),
@@ -131,6 +137,125 @@ class StudyStatsScreen extends ConsumerWidget {
           Text(value, style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: color)),
           const SizedBox(height: 4),
           Text(title, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeeklyGraph(ThemeData theme, Color color, List<dynamic> dailyData) {
+    if (dailyData.isEmpty) return const SizedBox.shrink();
+
+    // dailyData is a list of { date: 'YYYY-MM-DD', hours: 1.5 }
+    // Sort from oldest to newest (should be 7 days)
+    final sortedData = List<Map<String, dynamic>>.from(dailyData)
+      ..sort((a, b) => a['date'].compareTo(b['date']));
+
+    double maxHours = 0;
+    for (var item in sortedData) {
+      if ((item['hours'] as num) > maxHours) {
+        maxHours = (item['hours'] as num).toDouble();
+      }
+    }
+    // Add some padding to the top of the chart
+    if (maxHours < 1) maxHours = 1;
+    maxHours = (maxHours * 1.2).ceilToDouble();
+
+    return Container(
+      height: 250,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Weekly Progress', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 24),
+          Expanded(
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: maxHours,
+                minY: 0,
+                titlesData: FlTitlesData(
+                  show: true,
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        if (value >= 0 && value < sortedData.length) {
+                          // Format date to show just the day like "Mon", "Tue"
+                          final dateStr = sortedData[value.toInt()]['date'] as String;
+                          final date = DateTime.parse(dateStr);
+                          final dayStr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][date.weekday - 1];
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(dayStr, style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 10)),
+                          );
+                        }
+                        return const Text('');
+                      },
+                      reservedSize: 28,
+                    ),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 28,
+                      getTitlesWidget: (value, meta) {
+                        return Text(value.toInt().toString(), style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.6), fontSize: 10));
+                      },
+                    ),
+                  ),
+                ),
+                borderData: FlBorderData(show: false),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: maxHours > 5 ? (maxHours / 5) : 1,
+                  getDrawingHorizontalLine: (value) => FlLine(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                    strokeWidth: 1,
+                    dashArray: [5, 5],
+                  ),
+                ),
+                barGroups: sortedData.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final hours = (entry.value['hours'] as num).toDouble();
+                  return BarChartGroupData(
+                    x: index,
+                    barRods: [
+                      BarChartRodData(
+                        toY: hours,
+                        color: color,
+                        width: 16,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(6),
+                          topRight: Radius.circular(6),
+                        ),
+                        backDrawRodData: BackgroundBarChartRodData(
+                          show: true,
+                          toY: maxHours,
+                          color: color.withValues(alpha: 0.1),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
         ],
       ),
     );

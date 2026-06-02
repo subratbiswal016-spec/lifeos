@@ -133,7 +133,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         height: 120,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: theme.colorScheme.surface,
+                          color: theme.colorScheme.primary.withOpacity(0.1),
                           image: _base64Image != null || profileData['profilePhotoUrl'] != null
                               ? DecorationImage(
                                   image: _base64Image != null
@@ -143,12 +143,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                           : NetworkImage(profileData['profilePhotoUrl'])) as ImageProvider,
                                   fit: BoxFit.cover,
                                 )
-                              : const DecorationImage(
-                                  image: NetworkImage('https://i.pravatar.cc/150?img=11'),
-                                  fit: BoxFit.cover,
-                                ),
+                              : null,
                           border: Border.all(color: theme.colorScheme.primary, width: 4),
                         ),
+                        child: _base64Image == null && profileData['profilePhotoUrl'] == null
+                            ? Icon(Icons.person, size: 60, color: theme.colorScheme.primary)
+                            : null,
                       ),
                       Positioned(
                         bottom: 0,
@@ -166,7 +166,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                _buildTextField(theme, 'Full Name', _nameController, maxLength: 50, validator: (val) => val == null || val.isEmpty ? 'Required' : null),
+                _buildTextField(theme, 'Full Name', _nameController, maxLength: 25, validator: (val) => val == null || val.isEmpty ? 'Required' : null),
                 const SizedBox(height: 16),
                 _buildTextField(theme, 'Email Address', _emailController, maxLength: 100, validator: (val) {
                   if (val == null || val.isEmpty) return 'Required';

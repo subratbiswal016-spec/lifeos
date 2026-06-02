@@ -4,6 +4,7 @@ import '../../../core/constants/api_endpoints.dart';
 import '../models/family_member_model.dart';
 import '../models/medicine_log_model.dart';
 import '../models/symptom_log_model.dart';
+import '../models/doctor_visit_model.dart';
 
 final gharLogRepositoryProvider = Provider<GharLogRepository>((ref) {
   final dioClient = ref.watch(dioClientProvider);
@@ -32,6 +33,40 @@ class GharLogRepository {
         data: member.toJson(),
       );
       return FamilyMemberModel.fromJson(response.data['data']);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<FamilyMemberModel> updateMember(String memberId, FamilyMemberModel member) async {
+    try {
+      final response = await _dioClient.dio.put(
+        '${ApiEndpoints.members}/$memberId',
+        data: member.toJson(),
+      );
+      return FamilyMemberModel.fromJson(response.data['data']);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<List<DoctorVisitModel>> fetchAllVisits() async {
+    try {
+      final response = await _dioClient.dio.get('${ApiEndpoints.gharlogBase}/visits');
+      final List data = response.data['data'] ?? [];
+      return data.map((json) => DoctorVisitModel.fromJson(json)).toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<DoctorVisitModel> addDoctorVisit(DoctorVisitModel visit) async {
+    try {
+      final response = await _dioClient.dio.post(
+        '${ApiEndpoints.gharlogBase}/visits',
+        data: visit.toJson(),
+      );
+      return DoctorVisitModel.fromJson(response.data['data']);
     } catch (e) {
       rethrow;
     }

@@ -35,6 +35,18 @@ class MedicineRepository {
     }
   }
 
+  Future<MedicineModel> updateMedicine(String medicineId, MedicineModel medicine) async {
+    try {
+      final response = await _dioClient.dio.put(
+        '${ApiEndpoints.addMedicine}/$medicineId',
+        data: medicine.toJson(),
+      );
+      return MedicineModel.fromJson(response.data['data']);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<MedicineModel> toggleMedicineLog(String medicineId) async {
     try {
       final response = await _dioClient.dio.post(

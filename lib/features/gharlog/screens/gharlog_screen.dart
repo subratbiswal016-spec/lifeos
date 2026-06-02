@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/member_card.dart';
 import '../providers/gharlog_provider.dart';
+import '../../../core/theme/app_localizations.dart';
 import '../models/family_member_model.dart';
+import '../screens/add_member_screen.dart';
 
 class GharLogScreen extends ConsumerWidget {
   const GharLogScreen({super.key});
@@ -55,48 +57,7 @@ class GharLogScreen extends ConsumerWidget {
                   ),
                   TextButton.icon(
                     onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          final nameController = TextEditingController();
-                          final relationController = TextEditingController();
-                          return AlertDialog(
-                            title: const Text('Add Family Member'),
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                TextField(
-                                  controller: nameController,
-                                  decoration: const InputDecoration(labelText: 'Name', hintText: 'e.g. Papa'),
-                                ),
-                                const SizedBox(height: 8),
-                                TextField(
-                                  controller: relationController,
-                                  decoration: const InputDecoration(labelText: 'Relation', hintText: 'e.g. Father'),
-                                ),
-                              ],
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Cancel'),
-                              ),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  final name = nameController.text.trim();
-                                  final relation = relationController.text.trim();
-                                  if (name.isNotEmpty && relation.isNotEmpty) {
-                                    final newMember = FamilyMemberModel(id: '', name: name, relation: relation);
-                                    await ref.read(gharLogMembersProvider.notifier).addMember(newMember);
-                                    if (context.mounted) Navigator.pop(context);
-                                  }
-                                },
-                                child: const Text('Add'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AddMemberScreen()));
                     },
                     icon: const Icon(Iconsax.add),
                     label: const Text('Add Member'),
@@ -142,8 +103,9 @@ class GharLogScreen extends ConsumerWidget {
                       delay: Duration(milliseconds: 200 + (index * 100)),
                       child: MemberCard(
                         name: member.name,
-                        relation: member.relation,
+                        relation: ref.watch(localizationsProvider).translate(member.relation),
                         age: member.age?.toString() ?? 'N/A',
+                        photoUrl: member.photoUrl,
                         onTap: () {
                           // Pass ID instead of name eventually, but keeping route simple for now
                           context.push('/member_profile/${member.id}');

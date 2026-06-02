@@ -79,6 +79,7 @@ class ProfileScreen extends ConsumerWidget {
                             height: 120,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
+                              color: theme.colorScheme.primary.withOpacity(0.1),
                               border: Border.all(color: theme.colorScheme.primary, width: 3),
                               boxShadow: [
                                 BoxShadow(
@@ -87,15 +88,18 @@ class ProfileScreen extends ConsumerWidget {
                                   spreadRadius: 2,
                                 ),
                               ],
-                              image: DecorationImage(
-                                image: profileData['profilePhotoUrl'] != null
-                                    ? (profileData['profilePhotoUrl'].startsWith('data:image')
-                                        ? MemoryImage(base64Decode(profileData['profilePhotoUrl'].split(',').last))
-                                        : NetworkImage(profileData['profilePhotoUrl'])) as ImageProvider
-                                    : const NetworkImage('https://i.pravatar.cc/150?img=11'),
-                                fit: BoxFit.cover,
-                              ),
+                              image: profileData['profilePhotoUrl'] != null
+                                  ? DecorationImage(
+                                      image: (profileData['profilePhotoUrl'].startsWith('data:image')
+                                          ? MemoryImage(base64Decode(profileData['profilePhotoUrl'].split(',').last))
+                                          : NetworkImage(profileData['profilePhotoUrl'])) as ImageProvider,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
                             ),
+                            child: profileData['profilePhotoUrl'] == null
+                                ? Icon(Icons.person, size: 60, color: theme.colorScheme.primary)
+                                : null,
                           ),
                         ),
                         const SizedBox(height: 16),

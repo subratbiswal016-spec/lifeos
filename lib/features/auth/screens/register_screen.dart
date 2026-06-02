@@ -7,6 +7,7 @@ import '../../../core/widgets/premium_background.dart';
 import '../../../core/widgets/glass_container.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/auth_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -52,7 +53,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final success = await ref.read(authProvider.notifier).register(name, email, password);
     
     if (success && mounted) {
-      context.go('/home');
+      final prefs = await SharedPreferences.getInstance();
+      final hasSeenTour = prefs.getBool('has_seen_feature_tour') ?? false;
+      if (!hasSeenTour) {
+        context.go('/feature_tour');
+      } else {
+        context.go('/home');
+      }
     } else if (mounted) {
       final error = ref.read(authProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(

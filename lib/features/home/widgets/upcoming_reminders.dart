@@ -73,6 +73,12 @@ class UpcomingReminders extends StatelessWidget {
     final title = reminder['title'] ?? 'Reminder';
     final memberName = reminder['memberName'] ?? '';
     final time = reminder['time'] ?? 'Upcoming';
+    final isTaken = reminder['isTaken'] == true;
+
+    if (isTaken) {
+      color = Colors.grey;
+      icon = Icons.check_circle;
+    }
 
     return GlassContainer(
       onTap: () {
@@ -80,6 +86,8 @@ class UpcomingReminders extends StatelessWidget {
       },
       padding: const EdgeInsets.all(16),
       borderRadius: 16,
+      border: isTaken ? Border.all(color: Colors.grey.withOpacity(0.3)) : null,
+      color: isTaken ? Colors.grey.withOpacity(0.05) : null,
       child: Row(
         children: [
           Container(
@@ -96,8 +104,13 @@ class UpcomingReminders extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: textColor),
+                  isTaken ? '$title (Taken)' : title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold, 
+                    fontSize: 16, 
+                    color: isTaken ? subtitleColor : textColor,
+                    decoration: isTaken ? TextDecoration.lineThrough : null,
+                  ),
                 ),
                 if (memberName.isNotEmpty)
                   Text(
@@ -115,7 +128,7 @@ class UpcomingReminders extends StatelessWidget {
               ],
             ),
           ),
-          Icon(Icons.arrow_forward_ios, size: 14, color: subtitleColor),
+          Icon(isTaken ? Icons.check : Icons.arrow_forward_ios, size: 14, color: isTaken ? Colors.green : subtitleColor),
         ],
       ),
     );
