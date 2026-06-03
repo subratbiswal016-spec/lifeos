@@ -8,7 +8,7 @@ final themeProvider = StateNotifierProvider<ThemeNotifier, AppColorTheme>((ref) 
 });
 
 class ThemeNotifier extends StateNotifier<AppColorTheme> {
-  ThemeNotifier() : super(AppColorTheme.light) {
+  ThemeNotifier() : super(AppColorTheme.solarized) {
     _loadTheme();
   }
 
@@ -16,7 +16,7 @@ class ThemeNotifier extends StateNotifier<AppColorTheme> {
 
   Future<void> _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
-    final index = prefs.getInt(_key) ?? 0; // Default to light (0)
+    final index = prefs.getInt(_key) ?? AppColorTheme.solarized.index; // Default to forest green (solarized)
     state = AppColorTheme.values[index];
   }
 

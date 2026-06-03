@@ -35,6 +35,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       "image": "assets/images/onboarding3.png",
       "icon": Icons.school,
       "color": const Color(0xFF6C63FF)
+    },
+    {
+      "isForm": true,
+      "color": const Color(0xFF2D6A4F)
     }
   ];
 
@@ -179,6 +183,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               'Let\'s personalize LifeOS',
               style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onBackground,
               ),
               textAlign: TextAlign.center,
             ),
@@ -231,12 +236,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+        Text(label, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: theme.colorScheme.onBackground)),
         const SizedBox(height: 8),
         TextField(
           keyboardType: keyboardType,
+          style: TextStyle(color: theme.colorScheme.onBackground),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: TextStyle(color: theme.colorScheme.onBackground.withOpacity(0.5)),
             filled: true,
             fillColor: theme.colorScheme.surface,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
