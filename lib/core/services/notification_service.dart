@@ -71,13 +71,49 @@ class NotificationService {
     );
   }
 
-  tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
+  tz.TZDateTime _nextInstanceOfTime(int hour, int minute, {bool skipToday = false}) {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     tz.TZDateTime scheduledDate = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
-    if (scheduledDate.isBefore(now)) {
+    if (scheduledDate.isBefore(now) || skipToday) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
     return scheduledDate;
+  }
+
+  Future<void> scheduleCheckinReminder({bool skipToday = false}) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'checkin_reminders',
+      'Check-in Reminders',
+      channelDescription: 'Daily reminders to log your daily check-in',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: DarwinNotificationDetails(),
+    );
+
+    final times = [
+      {'id': 100, 'hour': 9, 'minute': 0, 'title': 'Morning Check-in 🌅', 'body': 'Start your day right! How are you feeling this morning?'},
+      {'id': 101, 'hour': 15, 'minute': 0, 'title': 'Afternoon Check-in ☀️', 'body': 'Halfway through the day! Take a moment to log your mood.'},
+      {'id': 102, 'hour': 21, 'minute': 0, 'title': 'Evening Check-in 🌙', 'body': 'Time to reflect on your day. Don\'t forget your daily check-in!'}
+    ];
+
+    for (var time in times) {
+      await _flutterLocalNotificationsPlugin.zonedSchedule(
+        id: time['id'] as int,
+        title: time['title'] as String,
+        body: time['body'] as String,
+        scheduledDate: _nextInstanceOfTime(time['hour'] as int, time['minute'] as int, skipToday: skipToday),
+        notificationDetails: platformChannelSpecifics,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+    }
+  }
+
+  Future<void> cancelNotification(int id) async {
+    await _flutterLocalNotificationsPlugin.cancel(id);
   }
 
   Future<void> scheduleMedicineReminder({

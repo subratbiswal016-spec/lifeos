@@ -18,6 +18,7 @@ import '../widgets/daily_tip_card.dart';
 import '../widgets/quick_stats_card.dart';
 import '../widgets/upcoming_reminders.dart';
 import '../../../core/theme/app_localizations.dart';
+import '../../mylife/providers/checkin_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   final Function(int)? onNavigateTab;
@@ -208,6 +209,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Eagerly initialize checkinProvider so it checks history and schedules notifications
+    ref.read(checkinProvider);
+
     final theme = Theme.of(context);
     final loc = ref.watch(localizationsProvider);
     final dashboardState = ref.watch(dashboardProvider);
